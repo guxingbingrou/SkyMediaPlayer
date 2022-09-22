@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SkyMediaPlayer</string>
+    <string name="menu_title">Select FFmpeg Sample</string>
+</resources>
