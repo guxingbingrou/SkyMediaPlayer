@@ -6,10 +6,12 @@
 #include "DemuxingDecoder/FFDemuxingDecoder.h"
 #include "utils/AndroidLog.h"
 #include "Render/Video/NativeRender.h"
+#include "Render/Audio/OpenslPLayer.h"
 #include "jni/jvm.h"
 
 static std::unique_ptr<DemuxingDecoderBase> s_demuxing_base;
 static std::shared_ptr<RenderBase> s_render;
+static std::shared_ptr<AudioPlayer> s_audio_player;
 static std::shared_ptr<Observer> s_video_observer;
 
 jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring url, jobject surface, jobject observer){
@@ -23,7 +25,10 @@ jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring url, jobje
 
     s_video_observer = std::make_shared<Observer>(env->NewGlobalRef(observer));
 
-    bool ret = s_demuxing_base->Init(path, s_render, s_video_observer);
+    s_audio_player = std::make_shared<OpenslPLayer>();
+    s_audio_player->InitAudioPlayer(2, 48000, AUDIO_FORMAT_S16);
+
+    bool ret = s_demuxing_base->Init(path, s_render, s_audio_player, s_video_observer, nullptr);
 
     env->ReleaseStringUTFChars(url, path);
 

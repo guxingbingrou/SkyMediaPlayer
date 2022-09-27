@@ -15,6 +15,16 @@ enum ImageFormat{
     IMAGE_FORMAT_NV21
 };
 
+enum SampleFormat{
+    AUDIO_FORMAT_NONE = -1,
+    AUDIO_FORMAT_U8,
+    AUDIO_FORMAT_S16,
+    AUDIO_FORMAT_S32,
+    AUDIO_FORMAT_FLT,
+    AUDIO_FORMAT_DBL
+};
+
+
 struct PacketParams{
     uint8_t* data;
     size_t size;
@@ -27,6 +37,15 @@ struct FrameParams{
     int width;
     int height;
     ImageFormat format;
+    long timestamp;
+};
+
+struct PcmParams{
+    uint8_t* data;
+    size_t size;
+    int channels;
+    int sample_rate;
+    SampleFormat format;
     long timestamp;
 };
 

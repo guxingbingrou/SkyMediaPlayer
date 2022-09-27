@@ -42,10 +42,14 @@ static int get_format_from_sample_fmt(const char **fmt,
 }
 
 bool FFDemuxingDecoder::Init(const char* url, const std::shared_ptr<RenderBase>& render,
-                             const std::shared_ptr<VideoDecoderObserver>& video_decoder_observer) {
+                             const std::shared_ptr<AudioPlayer>& audio_player,
+                             const std::shared_ptr<VideoDecoderObserver>& video_decoder_observer,
+                             const std::shared_ptr<AudioDecoderObserver>& audio_decoder_observer) {
     if(!url) return false;
     m_render = render;
     m_video_decoder_observer = video_decoder_observer;
+    m_audio_player = audio_player;
+    m_audio_decoder_observer = audio_decoder_observer;
     int size = strlen(url);
     if(m_Url){
         free((void *) m_Url);
@@ -86,25 +90,36 @@ bool FFDemuxingDecoder::Init(const char* url, const std::shared_ptr<RenderBase>&
 
         enum AVSampleFormat sfmt = m_audio_codec_context->sample_fmt;
         int n_channels = m_audio_codec_context->ch_layout.nb_channels;
-        const char *fmt;
 
-        if (av_sample_fmt_is_planar(sfmt)) {
-            const char *packed = av_get_sample_fmt_name(sfmt);
-            WARNING(" the sample format the decoder produced is planar "
-                   "(%s). This example will output the first channel only.\n",
-                   packed ? packed : "?");
-            sfmt = av_get_packed_sample_fmt(sfmt);
-            n_channels = 1;
+        m_pcm_params.channels = 2;
+        m_pcm_params.sample_rate = 44100;
+        m_pcm_params.format = AUDIO_FORMAT_S32;
+
+        if(m_swr_context){
+            swr_free(&m_swr_context);
+            m_swr_context = nullptr;
         }
+        m_swr_context = swr_alloc();
 
-        if ((get_format_from_sample_fmt(&fmt, sfmt)) < 0){
-            ERROR("can not get audio fmt");
-            return false;
+        av_opt_set_int(m_swr_context, "in_channel_layout", m_audio_codec_context->channel_layout, 0);
+        av_opt_set_int(m_swr_context, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
+
+        av_opt_set_int(m_swr_context, "in_sample_rate", m_audio_codec_context->sample_rate, 0);
+        av_opt_set_int(m_swr_context, "out_sample_rate", m_pcm_params.sample_rate, 0);
+
+        av_opt_set_sample_fmt(m_swr_context, "in_sample_fmt", m_audio_codec_context->sample_fmt, 0);
+        av_opt_set_sample_fmt(m_swr_context, "out_sample_fmt", AV_SAMPLE_FMT_S32,  0);
+
+        swr_init(m_swr_context);
+        int nbSamples = (int)av_rescale_rnd(1024, m_pcm_params.sample_rate, m_pcm_params.sample_rate, AV_ROUND_UP);
+        m_pcm_params.size = av_samples_get_buffer_size(nullptr, m_pcm_params.channels, nbSamples, AV_SAMPLE_FMT_S32, 1);
+
+        if(m_audio_data){
+            free(m_audio_data);
+            m_audio_data = nullptr;
         }
+        m_audio_data = (uint8_t *) malloc(m_pcm_params.size);
 
-
-        LOGI("audio format:%s, ac:%d, ar:%d", fmt,
-             n_channels, m_audio_codec_context->sample_rate);
     }
 
     if(!m_video_stream){
@@ -234,9 +249,12 @@ bool FFDemuxingDecoder::DecodeOnePacket(AVCodecContext *codec_context, AVPacket 
             }
 
         }else{
-//            size_t unpadded_linesize = m_frame->nb_samples * av_get_bytes_per_sample(
-//                    static_cast<AVSampleFormat>(m_frame->format));
+            swr_convert(m_swr_context, &m_audio_data, m_pcm_params.size,
+                        const_cast<const uint8_t**>(m_frame->data), m_frame->nb_samples);
 
+            m_pcm_params.data = m_audio_data;
+
+            m_audio_player->OnDecodedFrame(&m_pcm_params);
         }
 
         av_frame_unref(m_frame);
@@ -312,6 +330,16 @@ bool FFDemuxingDecoder::Destroy() {
     if(m_frame){
         av_frame_free(&m_frame);
         m_frame = nullptr;
+    }
+
+    if(m_swr_context){
+        swr_free(&m_swr_context);
+        m_swr_context = nullptr;
+    }
+
+    if(m_audio_data){
+        free(m_audio_data);
+        m_audio_data = nullptr;
     }
     return true;
 }

@@ -14,6 +14,9 @@ extern "C"{
 #include "libavformat/avformat.h"
 #include "libavutil/frame.h"
 #include "libavutil/imgutils.h"
+#include "libswresample/swresample.h"
+#include "libavutil/opt.h"
+#include "libavutil/audio_fifo.h"
 };
 
 
@@ -22,7 +25,9 @@ public:
     FFDemuxingDecoder();
     ~FFDemuxingDecoder();
     bool Init(const char* url, const std::shared_ptr<RenderBase>& render,
-            const std::shared_ptr<VideoDecoderObserver>& video_decoder_observer) override ;
+              const std::shared_ptr<AudioPlayer>& audio_player,
+            const std::shared_ptr<VideoDecoderObserver>& video_decoder_observer,
+            const std::shared_ptr<AudioDecoderObserver>& audio_decoder_observer) override ;
     bool Start() override;
     bool Stop() override;
     bool Destroy() override;
@@ -39,6 +44,9 @@ private:
     AVCodecContext* m_video_codec_context = nullptr;
     AVCodecContext* m_audio_codec_context = nullptr;
 
+    SwrContext* m_swr_context = nullptr;
+    uint8_t * m_audio_data = nullptr;
+
     AVStream* m_video_stream = nullptr;
     AVStream* m_audio_stream = nullptr;
     int m_video_stream_index = -1;
@@ -48,6 +56,7 @@ private:
     AVPacket* m_packet = nullptr;
 
     FrameParams m_frame_params;
+    PcmParams m_pcm_params;
 
     char* m_Url = nullptr;
 

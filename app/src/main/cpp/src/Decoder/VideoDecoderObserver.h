@@ -11,6 +11,7 @@ public:
     virtual void OnDecoderReady(int width, int height) = 0;
     virtual void OnDecoderOneFrame(FrameParams* frameParams) = 0;
     virtual void OnDecoderDone() = 0;
+    virtual ~VideoDecoderObserver(){}
 };
 
 

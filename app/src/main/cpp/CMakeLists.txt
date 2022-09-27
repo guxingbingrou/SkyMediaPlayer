@@ -80,17 +80,18 @@ set(FFMPEG
 
 
 add_library( # Sets the name of the library.
-             native-lib
+        native-lib
 
              # Sets the library as a shared library.
-             SHARED
+        SHARED
 
              # Provides a relative path to your source file(s).
-             src/jni/jni_onload.cc
-             src/jni/jvm.cc
-                src/jni/native_test.cpp
-                src/DemuxingDecoder/FFDemuxingDecoder.cpp
-                src/Render/Video/NativeRender.cpp
+        src/jni/jni_onload.cc
+        src/jni/jvm.cc
+        src/jni/native_test.cpp
+        src/DemuxingDecoder/FFDemuxingDecoder.cpp
+        src/Render/Video/NativeRender.cpp
+        src/Render/Audio/OpenslPLayer.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -112,4 +113,5 @@ target_link_libraries( # Specifies the target library.
                         ${FFMPEG}
                         libyuv
         android
+        OpenSLES
                         )
