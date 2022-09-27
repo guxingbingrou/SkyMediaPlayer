@@ -6,21 +6,26 @@
 #include "OpenslPLayer.h"
 #include "utils/AndroidLog.h"
 void OpenslPLayer::InitAudioPlayer(int channel, int sample_rate, SampleFormat format) {
+    INFO("InitAudioPlayer  Enter");
     CreateSLEngine();
-    CreateOutputMix();
-    CreateAudioPlayer();
+    INFO("CreateSLEngine ok");
 
+    CreateOutputMix();
+    INFO("CreateOutputMix ok");
+
+    CreateAudioPlayer();
+    INFO("CreateAudioPlayer ok");
     (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PLAYING);
 
     m_thread = std::thread(AudioPlayerCallback, this->m_player_buffer_queue, this);
-
+    INFO("InitAudioPlayer  Exit");
 }
 
 int OpenslPLayer::CreateSLEngine() {
     SLresult result = SL_RESULT_SUCCESS;
-
+    INFO("111111CreateSLEngine");
     result = slCreateEngine(&m_engine, 0, nullptr, 0, nullptr, nullptr);
-
+    INFO("222222 CreateSLEngine");
     if(result != SL_RESULT_SUCCESS){
         ERROR("opensl create engine failed(%d)", result);
         return result;
@@ -148,6 +153,27 @@ void OpenslPLayer::AudioPlayerCallback(SLAndroidSimpleBufferQueueItf bufferQueue
 }
 
 void OpenslPLayer::DestroyAudioPlayer() {
+    if(m_player_play){
+        (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_STOPPED);
+        m_player_play = nullptr;
+    }
+
+    m_audio_frame_queue->Stop();
+
+    if(m_player){
+        (*m_player)->Destroy(m_player);
+        m_player = nullptr;
+    }
+
+    if(m_output_mix){
+        (*m_output_mix)->Destroy(m_output_mix);
+        m_output_mix = nullptr;
+    }
+
+    if(m_engine){
+        (*m_engine)->Destroy(m_engine);
+        m_engine = nullptr;
+    }
 
 }
 

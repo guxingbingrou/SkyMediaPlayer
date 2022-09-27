@@ -11,9 +11,11 @@
 class Observer : public VideoDecoderObserver{
 public:
     Observer(jobject observer);
+    ~Observer();
     void OnDecoderReady(int width, int height) override ;
     void OnDecoderOneFrame(FrameParams* params) override ;
     void OnDecoderDone() override ;
+
 
 private:
     jobject m_java_observer;
