@@ -22,7 +22,7 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
     static private final String TAG = "SkyMediaPlayer";
     private ActivityMainBinding binding;
-    static private final String[] PERMISSION = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    static private final String[] PERMISSION = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET};
 
     static {
         System.loadLibrary("native-lib");
@@ -69,11 +69,12 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         switch (id){
-            case R.id.test1:
+            case R.id.ffmpeg_native:
                 Log.i(TAG, "haha");
                 startActivity(new Intent(MainActivity.this, FFmpegNativeActivity.class));
                 break;
-            case R.id.test2:
+            case R.id.ffmpeg_rtmp:
+                startActivity(new Intent(MainActivity.this, FFmepgNativeRtmpActivity.class));
                 Log.i(TAG,"huhu");
                 break;
         }

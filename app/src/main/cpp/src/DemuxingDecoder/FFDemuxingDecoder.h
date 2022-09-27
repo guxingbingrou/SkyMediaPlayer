@@ -31,6 +31,8 @@ public:
     bool Start() override;
     bool Stop() override;
     bool Destroy() override;
+    int GetVideoWidth(){return m_frame_params.width;}
+    int GetVideoHeight(){return m_frame_params.height;}
 
 
 private:
@@ -54,9 +56,6 @@ private:
 
     AVFrame* m_frame = nullptr;
     AVPacket* m_packet = nullptr;
-
-    FrameParams m_frame_params;
-    PcmParams m_pcm_params;
 
     char* m_Url = nullptr;
 

@@ -50,6 +50,8 @@ bool FFDemuxingDecoder::Init(const char* url, const std::shared_ptr<RenderBase>&
     m_video_decoder_observer = video_decoder_observer;
     m_audio_player = audio_player;
     m_audio_decoder_observer = audio_decoder_observer;
+
+    int ret = 0;
     int size = strlen(url);
     if(m_Url){
         free((void *) m_Url);
@@ -62,8 +64,10 @@ bool FFDemuxingDecoder::Init(const char* url, const std::shared_ptr<RenderBase>&
 
     m_format_context = avformat_alloc_context();
 
-    if(avformat_open_input(&m_format_context, m_Url, nullptr, nullptr)){
-        ERROR("avformat open input failed, url=%s", m_Url);
+    avformat_network_init();
+
+    if((ret = avformat_open_input(&m_format_context, m_Url, nullptr, nullptr))){
+        ERROR("avformat open input failed, url=%s, (%s)", m_Url, av_err2str(ret));
         return false;
     }
 
@@ -78,7 +82,9 @@ bool FFDemuxingDecoder::Init(const char* url, const std::shared_ptr<RenderBase>&
         m_frame_params.format = AVPixelFormatToImageFormat(m_video_codec_context->pix_fmt);
         m_frame_params.width = m_video_codec_context->width;
         m_frame_params.height = m_video_codec_context->height;
-        INFO("video format:%s, width:%d, height:%d", av_get_pix_fmt_name(m_video_codec_context->pix_fmt), m_frame_params.width, m_frame_params.height);
+        INFO("video format:%s(%d), width:%d, height:%d",
+                av_get_pix_fmt_name(m_video_codec_context->pix_fmt), m_video_codec_context->pix_fmt,
+                m_frame_params.width, m_frame_params.height);
         if(m_video_decoder_observer){
             m_video_decoder_observer->OnDecoderReady(m_frame_params.width, m_frame_params.height);
         }
@@ -197,8 +203,12 @@ bool FFDemuxingDecoder::Start() {
 }
 
 void FFDemuxingDecoder::DecodeLoop() {
-    bool ret;
-    while (m_is_running && av_read_frame(m_format_context, m_packet) >=0 ){
+    int ret = 0;
+    while (m_is_running ){
+        ret = av_read_frame(m_format_context, m_packet);
+        if(ret < 0)
+            break;
+
         if(m_packet->stream_index == m_video_stream_index){
             ret = DecodeOnePacket(m_video_codec_context, m_packet);
         }else if(m_packet->stream_index == m_audio_stream_index){
@@ -207,8 +217,9 @@ void FFDemuxingDecoder::DecodeLoop() {
 
         av_packet_unref(m_packet);
 
-        if(!ret) break;
+        if(ret < 0) break;
     }
+
 }
 
 bool FFDemuxingDecoder::DecodeOnePacket(AVCodecContext *codec_context, AVPacket *packet) {
@@ -237,7 +248,7 @@ bool FFDemuxingDecoder::DecodeOnePacket(AVCodecContext *codec_context, AVPacket 
                 m_frame_params.video_raw_data[i] = m_frame->data[i];
                 m_frame_params.video_raw_linesize[i] = m_frame->linesize[i];
             }
-            m_frame_params.timestamp = m_frame->pts;
+            m_frame_params.timestamp = m_frame->pkt_dts;
 
 
             if(m_video_decoder_observer){
@@ -248,13 +259,16 @@ bool FFDemuxingDecoder::DecodeOnePacket(AVCodecContext *codec_context, AVPacket 
                 m_render->OnDecodedFrame(&m_frame_params);
             }
 
+
         }else{
+
             swr_convert(m_swr_context, &m_audio_data, m_pcm_params.size,
                         const_cast<const uint8_t**>(m_frame->data), m_frame->nb_samples);
 
             m_pcm_params.data = m_audio_data;
 
             m_audio_player->OnDecodedFrame(&m_pcm_params);
+
         }
 
         av_frame_unref(m_frame);

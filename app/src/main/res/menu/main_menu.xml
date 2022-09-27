@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.byteflow.openglcamera2.MainActivity">
     <item
-        android:id="@+id/test1"
-        android:title="@string/menu_title" />
+        android:id="@+id/ffmpeg_native"
+        android:title="@string/menu_ffmpeg_native" />
     <item
-        android:id="@+id/test2"
-        android:title="haha" />
+        android:id="@+id/ffmpeg_rtmp"
+        android:title="@string/menu_ffmpeg_rtmp" />
 </menu>

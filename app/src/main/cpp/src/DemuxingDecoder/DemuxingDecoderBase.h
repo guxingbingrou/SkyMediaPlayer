@@ -21,7 +21,8 @@ public:
     virtual bool Stop() = 0;
     virtual bool Destroy() = 0;
 
-
+    int GetVideoWidth(){return m_frame_params.width;}
+    int GetVideoHeight(){return m_frame_params.height;}
     virtual ~DemuxingDecoderBase(){};
 
 protected:
@@ -29,6 +30,9 @@ protected:
     std::shared_ptr<AudioPlayer> m_audio_player;
     std::shared_ptr<VideoDecoderObserver> m_video_decoder_observer;
     std::shared_ptr<AudioDecoderObserver> m_audio_decoder_observer;
+
+    FrameParams m_frame_params;
+    PcmParams m_pcm_params;
 
 };
 

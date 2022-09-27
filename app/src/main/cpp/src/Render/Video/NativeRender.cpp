@@ -25,16 +25,21 @@ void NativeRender::InitRender(int targetWidth, int targetHeight, JNIEnv* env, jo
     int window_width = ANativeWindow_getWidth(m_native_window);
     int window_height = ANativeWindow_getHeight(m_native_window);
 
-    if(window_width < window_height * targetWidth / targetHeight){
-        m_width = window_width;
-        m_height = m_width * targetHeight / targetWidth;
-    }else{
-        m_height = window_height;
-        m_width = m_height * targetWidth / targetHeight;
-    }
+//    if(targetWidth <= window_width && targetHeight <= window_height){
+        m_width = targetWidth;
+        m_height = targetHeight;
+//    }
+//    else if(window_width < window_height * targetWidth / targetHeight){
+//        m_width = window_width;
+//        m_height = m_width * targetHeight / targetWidth;
+//    }else{
+//        m_height = window_height;
+//        m_width = m_height * targetWidth / targetHeight;
+//    }
 
     ANativeWindow_setBuffersGeometry(m_native_window, m_width, m_height, WINDOW_FORMAT_RGBA_8888);
 
+    INFO("ANativeWindow_setBuffersGeometry: w x h: %d, %d", m_width, m_height);
 }
 
 void NativeRender::OnDecodedFrame(const FrameParams *frame) {

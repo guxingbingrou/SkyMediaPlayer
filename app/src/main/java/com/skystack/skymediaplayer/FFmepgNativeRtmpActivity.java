@@ -7,24 +7,22 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 
 import com.skystack.skymediaplayer.MediaPlayer.FFMediaPlayer;
 import com.skystack.skymediaplayer.MediaPlayer.VideoDecoderObserver;
 import com.skystack.skymediaplayer.util.MySurfaceView;
 
-
-public class FFmpegNativeActivity extends AppCompatActivity {
-
+public class FFmepgNativeRtmpActivity extends AppCompatActivity {
     MySurfaceView surfaceView;
     FFMediaPlayer ffMediaPlayer;
-    private String mVideoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/sky/one_piece.mp4";
+
+    private String mVideoPath = "rtmp://119.91.25.164/live/livestream";
     static final String TAG = "FFmpegNativeActivity";
     Observer observer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_f_fmpeg_native);
+        setContentView(R.layout.activity_f_fmepg_native_rtmp);
 
         surfaceView = findViewById(R.id.surfaceView);
 
@@ -46,7 +44,6 @@ public class FFmpegNativeActivity extends AppCompatActivity {
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                Log.i(TAG, "surfaceDestroyed");
                 ffMediaPlayer.DestroyMediaPlayer();
                 ffMediaPlayer = null;
             }

@@ -16,7 +16,7 @@ static std::shared_ptr<Observer> s_video_observer;
 
 jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring url, jobject surface, jobject observer){
     s_render = std::make_shared<NativeRender>();
-    s_render->InitRender(1920, 1080, env, surface);
+
 
     s_demuxing_base = std::make_unique<FFDemuxingDecoder>();
 
@@ -29,6 +29,8 @@ jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring url, jobje
     s_audio_player->InitAudioPlayer(2, 48000, AUDIO_FORMAT_S16);
 
     bool ret = s_demuxing_base->Init(path, s_render, s_audio_player, s_video_observer, nullptr);
+
+    s_render->InitRender(s_demuxing_base->GetVideoWidth(), s_demuxing_base->GetVideoHeight(), env, surface);
 
     env->ReleaseStringUTFChars(url, path);
 
@@ -44,6 +46,7 @@ jboolean NativeStopMediaPlayer(JNIEnv* env, jobject jobject1){
 }
 
 jboolean NativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1){
+
     return s_demuxing_base->Destroy();
 }
 

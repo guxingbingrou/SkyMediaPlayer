@@ -24,12 +24,11 @@ public class MySurfaceView extends SurfaceView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        Log.i(TAG, "onMeasure  width x height: " + widthMeasureSpec + " x " + heightMeasureSpec);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-
+        Log.i(TAG, "onMeasure  width x height: " + width + " x " + height);
         if(0 == mRatioWidth || 0 == mRatioHegiht){
             setMeasuredDimension(width, height);
         }else{
