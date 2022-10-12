@@ -14,6 +14,9 @@ public:
     virtual void OnDecodedFrame(const FrameParams* frame) = 0;
     virtual void DestroyRender() = 0;
 
+    virtual void OnSurfaceCreated() = 0;
+    virtual void OnSurfaceChanged(int width, int height) = 0;
+    virtual void OnDrawFrame() = 0;
 protected:
     int m_width;
     int m_height;

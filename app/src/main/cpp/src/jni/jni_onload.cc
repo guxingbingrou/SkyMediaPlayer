@@ -24,7 +24,10 @@ static JNINativeMethod getMethods[] = {
         {"NativeInitMediaPLayer","(Ljava/lang/String;Landroid/view/Surface;Lcom/skystack/skymediaplayer/MediaPlayer/VideoDecoderObserver;)Z", reinterpret_cast<void*>(NativeInitMediaPLayer)},
         {"NativeStartMediaPlayer","()Z", reinterpret_cast<void*>(NativeStartMediaPlayer)},
         {"NativeStopMediaPlayer","()Z", reinterpret_cast<void*>(NativeStopMediaPlayer)},
-        {"NativeDestroyMediaPlayer","()Z", reinterpret_cast<void*>(NativeDestroyMediaPlayer)}
+        {"NativeDestroyMediaPlayer","()Z", reinterpret_cast<void*>(NativeDestroyMediaPlayer)},
+        {"NativeOnSurfaceCreated","()V", reinterpret_cast<void*>(NativeOnSurfaceCreated)},
+        {"NativeOnSurfaceChanged","(II)V", reinterpret_cast<void*>(NativeOnSurfaceChanged)},
+        {"NativeOnDrawFrame","()V", reinterpret_cast<void*>(NativeOnDrawFrame)},
 };
 
 static void loadNativeClass(JNIEnv* env){

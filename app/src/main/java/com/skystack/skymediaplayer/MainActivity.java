@@ -70,12 +70,13 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch (id){
             case R.id.ffmpeg_native:
-                Log.i(TAG, "haha");
                 startActivity(new Intent(MainActivity.this, FFmpegNativeActivity.class));
                 break;
             case R.id.ffmpeg_rtmp:
                 startActivity(new Intent(MainActivity.this, FFmepgNativeRtmpActivity.class));
-                Log.i(TAG,"huhu");
+                break;
+            case R.id.ffmpeg_opengl:
+                startActivity(new Intent(MainActivity.this, FFmpegOpenGLActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);

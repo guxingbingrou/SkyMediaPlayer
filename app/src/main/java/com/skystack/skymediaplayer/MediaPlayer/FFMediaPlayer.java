@@ -32,9 +32,28 @@ public class FFMediaPlayer implements SkyMediaPlayer {
         return NativeDestroyMediaPlayer();
     }
 
+    @Override
+    public void OnSurfaceCreated() {
+        NativeOnSurfaceCreated();
+    }
+
+    @Override
+    public void OnSurfaceChanged(int w, int h) {
+        NativeOnSurfaceChanged(w, h);
+    }
+
+    @Override
+    public void OnDrawFrame() {
+        NativeOnDrawFrame();
+    }
+
 
     private native boolean NativeInitMediaPLayer(String url, Surface surface, VideoDecoderObserver observer);
     private native boolean NativeStartMediaPlayer();
     private native boolean NativeStopMediaPlayer();
     private native boolean NativeDestroyMediaPlayer();
+
+    private native void NativeOnSurfaceCreated();
+    private native void NativeOnSurfaceChanged(int w, int h);
+    private native void NativeOnDrawFrame();
 }

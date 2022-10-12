@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SkyMediaPlayer">
-        <activity android:name=".FFmepgNativeRtmpActivity"></activity>
+        <activity android:name=".FFmpegOpenGLActivity"></activity>
+        <activity android:name=".FFmepgNativeRtmpActivity" />
         <activity android:name=".FFmpegNativeActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

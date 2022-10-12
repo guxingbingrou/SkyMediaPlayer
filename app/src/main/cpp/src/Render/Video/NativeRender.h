@@ -18,6 +18,9 @@ public:
     void OnDecodedFrame(const FrameParams* frame) override ;
     void DestroyRender() override ;
 
+    void OnSurfaceCreated() override {};
+    void OnSurfaceChanged(int width, int height) override { };
+    void OnDrawFrame() override {};
 private:
     ANativeWindow* m_native_window = nullptr;
     ANativeWindow_Buffer m_native_buffer;

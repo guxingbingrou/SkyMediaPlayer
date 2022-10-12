@@ -14,6 +14,10 @@ public interface SkyMediaPlayer {
     boolean StopMediaPlayer();
     boolean DestroyMediaPlayer();
 
+    void OnSurfaceCreated();
+    void OnSurfaceChanged(int w, int h);
+    void OnDrawFrame();
+
     /** MediaPlayerType:
      * 0-ffmpeg
      * 1-mediacodec

@@ -7,6 +7,7 @@
 #include "utils/AndroidLog.h"
 #include "Render/Video/NativeRender.h"
 #include "Render/Audio/OpenslPLayer.h"
+#include "Render/Video/GLRender.h"
 #include "jni/jvm.h"
 
 static std::unique_ptr<DemuxingDecoderBase> s_demuxing_base;
@@ -15,22 +16,29 @@ static std::shared_ptr<AudioPlayer> s_audio_player;
 static std::shared_ptr<Observer> s_video_observer;
 
 jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring url, jobject surface, jobject observer){
-    s_render = std::make_shared<NativeRender>();
-    ERROR("111111111111");
+    if(surface != nullptr){
+        s_render = std::make_shared<NativeRender>();
+        INFO("Native Render");
+    }
+
+    else{
+        s_render = std::make_shared<GLRender>();
+        INFO("GL Render");
+    }
+
 
     s_demuxing_base = std::make_unique<FFDemuxingDecoder>();
-    ERROR("222222222222");
     const char* path = env->GetStringUTFChars(url, 0);
 
 
     s_video_observer = std::make_shared<Observer>(env->NewGlobalRef(observer));
-    ERROR("333333333333333");
+
     s_audio_player = std::make_shared<OpenslPLayer>();
 
     s_audio_player->InitAudioPlayer(2, 48000, AUDIO_FORMAT_S16);
-    ERROR("444444444444444");
+
     bool ret = s_demuxing_base->Init(path, s_render, s_audio_player, s_video_observer, nullptr);
-    ERROR("5555555555555555555");
+
     s_render->InitRender(s_demuxing_base->GetVideoWidth(), s_demuxing_base->GetVideoHeight(), env, surface);
 
     env->ReleaseStringUTFChars(url, path);
@@ -59,6 +67,17 @@ jboolean NativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1){
     return ret;
 }
 
+void NativeOnSurfaceCreated(JNIEnv *env, jobject jobject1) {
+    s_render->OnSurfaceCreated();
+}
+
+void NativeOnSurfaceChanged(JNIEnv *env, jobject jobject1, int w, int h) {
+    s_render->OnSurfaceChanged(w, h);
+}
+
+void NativeOnDrawFrame(JNIEnv *env, jobject jobject1) {
+    s_render->OnDrawFrame();
+}
 
 
 Observer::Observer(jobject observer) {

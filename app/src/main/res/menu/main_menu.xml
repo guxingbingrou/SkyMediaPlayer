@@ -9,4 +9,7 @@
     <item
         android:id="@+id/ffmpeg_rtmp"
         android:title="@string/menu_ffmpeg_rtmp" />
+    <item
+        android:id="@+id/ffmpeg_opengl"
+        android:title="@string/menu_ffmpeg_opengl" />
 </menu>

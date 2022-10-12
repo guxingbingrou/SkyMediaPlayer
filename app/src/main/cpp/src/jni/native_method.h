@@ -28,4 +28,8 @@ extern "C" jboolean NativeInitMediaPLayer(JNIEnv* env, jobject jobject1, jstring
 extern "C" jboolean NativeStartMediaPlayer(JNIEnv* env, jobject jobject1);
 extern "C" jboolean NativeStopMediaPlayer(JNIEnv* env, jobject jobject1);
 extern "C" jboolean NativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1);
+
+extern "C" void NativeOnSurfaceCreated(JNIEnv* env, jobject jobject1);
+extern "C" void NativeOnSurfaceChanged(JNIEnv* env, jobject jobject1, int w, int h);
+extern "C" void NativeOnDrawFrame(JNIEnv* env, jobject jobject1);
 #endif //SKYMEDIAPLAYER_NATIVE_METHOD_H

@@ -92,6 +92,8 @@ add_library( # Sets the name of the library.
         src/DemuxingDecoder/FFDemuxingDecoder.cpp
         src/Render/Video/NativeRender.cpp
         src/Render/Audio/OpenslPLayer.cpp
+        src/Render/Video/GLRender.cpp
+        src/Render/Video/GLUtils.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -114,4 +116,5 @@ target_link_libraries( # Specifies the target library.
                         libyuv
         android
         OpenSLES
+        GLESv3
                         )
