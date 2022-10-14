@@ -49,9 +49,7 @@ public class FFmepgNativeRtmpActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
+    
 
     class Observer implements VideoDecoderObserver {
 

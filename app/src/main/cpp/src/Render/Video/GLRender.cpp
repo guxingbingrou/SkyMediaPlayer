@@ -73,6 +73,8 @@ static char fShaderStr[] =
         "    {\n"
         "        outColor = vec4(1.0);\n"
         "    }\n"
+        "    if(v_texCoord.x > 0.5) \n"
+        "       outColor = vec4(vec3(outColor.r*0.299 + outColor.g*0.587 + outColor.b*0.114), outColor.a);\n"
         "}";
 
 GLfloat verticesCoords[] = {
