@@ -56,8 +56,11 @@ jboolean NativeStopMediaPlayer(JNIEnv* env, jobject jobject1){
 
 jboolean NativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1){
     bool ret = false;
+
     ret = s_demuxing_base->Destroy();
+
     s_audio_player->DestroyAudioPlayer();
+
     s_render->DestroyRender();
 
     s_render.reset();

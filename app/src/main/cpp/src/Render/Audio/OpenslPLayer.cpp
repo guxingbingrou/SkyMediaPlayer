@@ -134,6 +134,10 @@ void OpenslPLayer::AudioPlayerCallback(SLAndroidSimpleBufferQueueItf bufferQueue
 
     PcmParams pcmParams;
     opensl_pLayer->GetBufferQueue()->WaitePopBuffer(pcmParams);
+    if(pcmParams.size == 0){
+        WARNING("pop no data");
+        return;
+    }
 
     auto buffer_queue_itf = opensl_pLayer->GetSLBufferQueueItf();
     if(buffer_queue_itf){
@@ -171,7 +175,6 @@ void OpenslPLayer::DestroyAudioPlayer() {
         (*m_engine)->Destroy(m_engine);
         m_engine = nullptr;
     }
-
 }
 
 void OpenslPLayer::OnDecodedFrame(const PcmParams *frame) {

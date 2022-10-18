@@ -206,8 +206,10 @@ void FFDemuxingDecoder::DecodeLoop() {
     int ret = 0;
     while (m_is_running ){
         ret = av_read_frame(m_format_context, m_packet);
-        if(ret < 0)
+        if(ret < 0){
+            INFO("decode done");
             break;
+        }
 
         if(m_packet->stream_index == m_video_stream_index){
             ret = DecodeOnePacket(m_video_codec_context, m_packet);

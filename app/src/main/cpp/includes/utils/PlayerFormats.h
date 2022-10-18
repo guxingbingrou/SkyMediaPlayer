@@ -41,8 +41,8 @@ struct FrameParams{
 };
 
 struct PcmParams{
-    uint8_t* data;
-    size_t size;
+    uint8_t* data = nullptr;
+    size_t size = 0;
     int channels;
     int sample_rate;
     SampleFormat format;

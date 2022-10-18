@@ -14,11 +14,11 @@
         android:theme="@style/Theme.SkyMediaPlayer">
         <activity android:name=".FFmpegOpenGLActivity"></activity>
         <activity android:name=".FFmepgNativeRtmpActivity" />
-        <activity android:name=".FFmpegNativeActivity" />
+        <activity android:name=".FFmpegNativeActivity"></activity>
+<!--            android:screenOrientation="landscape"/>-->
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
