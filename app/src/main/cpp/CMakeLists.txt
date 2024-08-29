@@ -14,14 +14,31 @@ project("skymediaplayer")
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+INCLUDE_DIRECTORIES(
+        ${PROJECT_SOURCE_DIR}/includes
+        ${PROJECT_SOURCE_DIR}/includes/ffmpeg
+        ${PROJECT_SOURCE_DIR}/includes/libyuv
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_BINARY_DIR}
+)
+
+
+add_library(SkyMediaEngine
+        SHARED
+        src/Decoder/VideoDecoder.cpp
+        )
+
+
 add_library( # Sets the name of the library.
-        skymediaplayer
+        SkyMediaPlayer
 
         # Sets the library as a shared library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        native-lib.cpp)
+        src/jni/jni_onload.cc
+        src/jni/jvm.cc
+        src/jni/native-lib.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -41,8 +58,9 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        skymediaplayer
+        SkyMediaPlayer
 
         # Links the target library to the log library
         # included in the NDK.
-        ${log-lib})
+        ${log-lib}
+        android)
