@@ -47,8 +47,6 @@ private:
     GLuint m_samplers_location[3];
     GLuint m_color_conversion_location = 0;
     GLuint m_image_type_location = 0;
-    GLuint m_texcoords_location = 0;
-    GLuint m_position_location = 0;
 
     GLuint m_textures[3];
     GLuint m_vbos[3];

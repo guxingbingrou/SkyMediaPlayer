@@ -82,34 +82,20 @@ static char fShaderStr[] = SKY_GLES_STRING(
             }
         });
 
-//GLfloat verticesCoords[] = {
-//        -1.0f, 1.0f, 0.0f,  // Position 0
-//        -1.0f, -1.0f, 0.0f,  // Position 1
-//        1.0f, -1.0f, 0.0f,  // Position 2
-//        1.0f, 1.0f, 0.0f,  // Position 3
-//};
-//
-//GLfloat textureCoords[] = {
-//        0.0f, 0.0f,        // TexCoord 0
-//        0.0f, 1.0f,        // TexCoord 1
-//        1.0f, 1.0f,        // TexCoord 2
-//        1.0f, 0.0f         // TexCoord 3
-//};
-
-
 GLfloat verticesCoords[] = {
-        -1.0f, -1.0f,   // Position 0
-        1.0f, -1.0f,   // Position 1
-        -1.0f, 1.0f,  // Position 2
-        1.0f, 1.0f // Position 3
+        -1.0f, 1.0f, 0.0f,  // Position 0
+        -1.0f, -1.0f, 0.0f,  // Position 1
+        1.0f, -1.0f, 0.0f,  // Position 2
+        1.0f, 1.0f, 0.0f,  // Position 3
 };
 
 GLfloat textureCoords[] = {
-        0.0f, 1.0f,        // TexCoord 0
-        1.0f, 1.0f,        // TexCoord 1
-        0.0f, 0.0f,        // TexCoord 2
+        0.0f, 0.0f,        // TexCoord 0
+        0.0f, 1.0f,        // TexCoord 1
+        1.0f, 1.0f,        // TexCoord 2
         1.0f, 0.0f         // TexCoord 3
 };
+
 
 GLushort indices[] = {0, 1, 2, 0, 2, 3};
 
@@ -156,8 +142,6 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
     INFO("egl: %dx%d,  native:%dx%d, format:%d", egl_width,egl_height, width, height, format);
 
 
-
-
     INFO("glViewport:%dx%d", skyFrame->frame->width, skyFrame->frame->height);
     INFO("frame:%d,%d.%d", skyFrame->frame->linesize[0], skyFrame->frame->linesize[1],skyFrame->frame->linesize[2]);
 
@@ -165,17 +149,8 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-
-//    static uint8_t* data = (uint8_t*)malloc(skyFrame->frame->width * skyFrame->frame->height * 4);
-//    libyuv::I420ToABGR(skyFrame->frame->data[0], skyFrame->frame->linesize[0],
-//                       skyFrame->frame->data[1], skyFrame->frame->linesize[1],
-//                       skyFrame->frame->data[2], skyFrame->frame->linesize[2],
-//                       data, skyFrame->frame->width*4,
-//                       skyFrame->frame->width, skyFrame->frame->height);
-
-
     int frame_type = 0;
-//    skyFrame->frame->format = AV_PIX_FMT_RGBA;
+
     switch (skyFrame->frame->format) {
         case AV_PIX_FMT_RGBA:
             glBindTexture(GL_TEXTURE_2D, m_textures[0]);
@@ -222,15 +197,15 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
 
             break;
     }
-    INFO("frame_type: %d", frame_type);
-//    glBindVertexArray(m_vao);
+
+    glBindVertexArray(m_vao);
 
     glUniform1i(m_image_type_location, frame_type);
-//    INFO("glDrawElements");
-//    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
-//    INFO("eglSwapBuffers");
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+
+    glBindVertexArray(0);
+
     eglSwapBuffers(m_display, m_surface);
 //    INFO("return :%d", count);
     ReleaseCurrent();
@@ -357,8 +332,6 @@ bool VideoRenderer::PrepareDraw() {
     }
 
     m_mvp_location = glGetUniformLocation(m_program, "um4_ModelViewProjection");
-    m_position_location = glGetAttribLocation(m_program, "av4_Position");
-    m_texcoords_location = glGetAttribLocation(m_program, "av2_Texcoord");
 
     m_samplers_location[0] = glGetUniformLocation(m_program, "us2_SamplerX");
     m_samplers_location[1] = glGetUniformLocation(m_program, "us2_SamplerY");
@@ -373,29 +346,31 @@ bool VideoRenderer::PrepareDraw() {
 
 
 //vbo\vao
-//    glGenBuffers(3, m_vbos);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[0]);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesCoords), verticesCoords, GL_STATIC_DRAW);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[1]);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(textureCoords), textureCoords, GL_STATIC_DRAW);
-//
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbos[2]);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-//
-//    glGenVertexArrays(1, &m_vao);
-//    glBindVertexArray(m_vao);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[0]);
-//    glEnableVertexAttribArray(0);
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3* sizeof(GLfloat), nullptr);
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[0]);
-//    glEnableVertexAttribArray(1);
-//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2* sizeof(GLfloat), nullptr);
-//
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbos[2]);
+    glGenBuffers(3, m_vbos);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesCoords), verticesCoords, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(textureCoords), textureCoords, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbos[2]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[0]);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3* sizeof(GLfloat), nullptr);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbos[1]);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2* sizeof(GLfloat), nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbos[2]);
+
+    glBindVertexArray(0);
 
 
     //use program
@@ -420,14 +395,6 @@ bool VideoRenderer::PrepareDraw() {
     Sky_GLES_Matrix matrix;
     GenerateMatrix(&matrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     glUniformMatrix4fv(m_mvp_location, 1, GL_FALSE, matrix.m);
-
-
-
-    glVertexAttribPointer(m_texcoords_location, 2, GL_FLOAT, GL_FALSE, 0, textureCoords);
-    glEnableVertexAttribArray(m_texcoords_location);
-
-    glVertexAttribPointer(m_position_location, 2, GL_FLOAT, GL_FALSE, 0, verticesCoords);
-    glEnableVertexAttribArray(m_position_location);
 
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
