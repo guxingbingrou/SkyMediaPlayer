@@ -1,5 +1,7 @@
 package com.skystack.skymediaplayer;
 
+import android.view.Surface;
+
 public class MediaPlayer {
     private long nativeMediaPlayer = 0;
     static public int MediaPlayerFFmpeg = 1;
@@ -13,6 +15,27 @@ public class MediaPlayer {
         nativeMediaPlayer = nativeCreateMediaPlayer(type);
     }
 
+    public boolean SetSource(String path){
+        return nativeSetSource(nativeMediaPlayer, path);
+    }
+
+    public void SetSurface(Surface surface){
+        nativeSetSurface(nativeMediaPlayer, surface);
+    }
+
+    public boolean Start(){
+        return nativeStartMediaPlayer(nativeMediaPlayer);
+    }
+
+    public boolean Stop(){
+        return nativeStopMediaPlayer(nativeMediaPlayer);
+    }
+
+    public boolean Destroy(){
+        return nativeDestroyMediaPlayer(nativeMediaPlayer);
+    }
+
+
 
 
     private native long nativeCreateMediaPlayer(int type);
@@ -20,9 +43,7 @@ public class MediaPlayer {
     private native boolean nativeStartMediaPlayer(long nativeMediaPlayer);
     private native boolean nativeStopMediaPlayer(long nativeMediaPlayer);
     private native boolean nativeDestroyMediaPlayer(long nativeMediaPlayer);
-    private native void nativeOnSurfaceCreated(long nativeMediaPlayer);
-    private native void nativeOnSurfaceChanged(long nativeMediaPlayer, int width, int height);
-    private native void nativeOnDrawFrame(long nativeMediaPlayer);
+    private native void nativeSetSurface(long nativeMediaPlayer, Surface surface);
 
 
 }

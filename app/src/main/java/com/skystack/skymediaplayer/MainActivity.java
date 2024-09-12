@@ -18,8 +18,12 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private final static int RequestCodePermissions = 2;
     static private final String[] PERMISSION = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.INTERNET};
 
-
+    private MediaPlayer mediaPlayer = null;
+    private SurfaceRenderView surfaceView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +54,48 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        mediaPlayer = MediaPlayer.CreateMediaPlayer(MediaPlayer.MediaPlayerFFmpeg);
+
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER);
+
+        surfaceView = new SurfaceRenderView(this);
+//        surfaceView = binding.surfaceView;
+        surfaceView.setLayoutParams(layoutParams);
+
+        binding.frameLayout.addView(surfaceView);
+
+        SurfaceHolder surfaceHolder = surfaceView.getHolder();
+        surfaceHolder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                Log.i(TAG, "surfaceCreated");
+                mediaPlayer.SetSurface(holder.getSurface());
+                mediaPlayer.Start();
+            }
+
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                Log.i(TAG, "wxh: " + width + "x" + height);
+            }
+
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                Log.i(TAG, "surfaceDestroyed");
+                mediaPlayer.SetSurface(null);
+            }
+        });
+
+
+
+
+
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(this, PERMISSION, RequestCodePermissions);
         }
+
 
     }
 
@@ -112,7 +156,9 @@ public class MainActivity extends AppCompatActivity {
                 String path = Utils.getPath(this, uri);
                 Toast.makeText(this, "filePath: " + path, Toast.LENGTH_LONG).show();
                 if(path != null){
-
+                    mediaPlayer.SetSource(path);
+                    surfaceView.setAspectRatio(1080,606);
+                    mediaPlayer.Start();
                 }
             }
         }

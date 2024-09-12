@@ -24,9 +24,7 @@ static JNINativeMethod getMethods[] = {
         {"nativeStartMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStartMediaPlayer)},
         {"nativeStopMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStopMediaPlayer)},
         {"nativeDestroyMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeDestroyMediaPlayer)},
-        {"nativeOnSurfaceCreated","(J)V", reinterpret_cast<void*>(nativeOnSurfaceCreated)},
-        {"nativeOnSurfaceChanged","(JII)V", reinterpret_cast<void*>(nativeOnSurfaceChanged)},
-        {"nativeOnDrawFrame","(J)V", reinterpret_cast<void*>(nativeOnDrawFrame)},
+        {"nativeSetSurface","(JLandroid/view/Surface;)V", reinterpret_cast<void*>(nativeSetSurface)},
 };
 
 static void loadNativeClass(JNIEnv* env){

@@ -21,12 +21,86 @@ INCLUDE_DIRECTORIES(
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_BINARY_DIR}
 )
+set(LIBRARY_DIR ${PROJECT_SOURCE_DIR}/libs/${ANDROID_ABI})
+find_library(log-lib log)
 
+add_library(libyuv SHARED IMPORTED)
+set_target_properties(libyuv PROPERTIES IMPORTED_LOCATION
+        ${LIBRARY_DIR}/libyuv/libyuv.so)
+
+set(FFMPEG_DIR ${LIBRARY_DIR}/ffmpeg)
+
+add_library(avcodec SHARED IMPORTED)
+set_target_properties(avcodec PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libavcodec.so)
+
+#add_library(avdevice SHARED IMPORTED)
+#set_target_properties(avdevice PROPERTIES IMPORTED_LOCATION
+#        ${FFMPEG_DIR}/libavdevice.so)
+
+add_library(avfilter SHARED IMPORTED)
+set_target_properties(avfilter PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libavfilter.so)
+
+add_library(avformat SHARED IMPORTED)
+set_target_properties(avformat PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libavformat.so)
+
+add_library(avutil SHARED IMPORTED)
+set_target_properties(avutil PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libavutil.so)
+
+add_library(swscale SHARED IMPORTED)
+set_target_properties(swscale PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libswscale.so)
+
+add_library(swresample SHARED IMPORTED)
+set_target_properties(swresample PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libswresample.so)
+
+add_library(x264 SHARED IMPORTED)
+set_target_properties(x264 PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libx264.so)
+
+add_library(fdk-aac SHARED IMPORTED)
+set_target_properties(fdk-aac PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_DIR}/libfdk-aac.so)
+
+set(FFMPEG
+        avcodec
+        #        avdevice
+        avfilter
+        avformat
+        avutil
+        swscale
+        swresample
+        fdk-aac
+        x264)
 
 add_library(SkyMediaEngine
         SHARED
-        src/Decoder/VideoDecoder.cpp
+        src/Decoder/DemuxThread.cpp
+        src/Decoder/FFMediaDecoder.cpp
+        src/Decoder/MediaCodecDecoder.cpp
+        src/Decoder/MediaDecoderFactory.cpp
+        src/Renderer/RenderThread.cpp
+        src/Renderer/AudioPlayer.cpp
+        src/Renderer/VideoRenderer.cpp
+        src/Renderer/GLUtils.cpp
+        src/Decoder/SkyPacketQueue.cpp
+        src/SkyFrameQueue.cpp
+        src/SkyMediaPlayer.cpp
         )
+
+target_link_libraries(SkyMediaEngine
+        ${log-lib}
+        ${FFMPEG}
+        libyuv
+        android
+        OpenSLES
+        GLESv3
+        EGL)
+
 
 
 add_library( # Sets the name of the library.
@@ -46,12 +120,7 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
-        log-lib
 
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -63,4 +132,10 @@ target_link_libraries( # Specifies the target library.
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
-        android)
+        SkyMediaEngine
+        ${FFMPEG}
+        libyuv
+        android
+        OpenSLES
+        GLESv3
+        EGL)

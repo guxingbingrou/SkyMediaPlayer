@@ -7,14 +7,13 @@
 
 #include "jni.h"
 
-extern "C" jlong nativeCreateMediaPlayer(JNIEnv* env, jint type);
-extern "C" jboolean nativeSetSource(jlong nativeMediaPlayer, jobject path);
-extern "C" jboolean nativeStartMediaPlayer(jlong nativeMediaPlayer);
-extern "C" jboolean nativeStopMediaPlayer(jlong nativeMediaPlayer);
-extern "C" jboolean nativeDestroyMediaPlayer(jlong nativeMediaPlayer);
-extern "C" jboolean nativeOnSurfaceCreated(jlong nativeMediaPlayer);
-extern "C" jboolean nativeOnSurfaceChanged(jlong nativeMediaPlayer, jint width, jint height);
-extern "C" jboolean nativeOnDrawFrame(jlong nativeMediaPlayer);
+extern "C" jlong nativeCreateMediaPlayer(JNIEnv* env, jobject jobject1, jint type);
+extern "C" jboolean nativeSetSource(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer, jstring path);
+extern "C" jboolean nativeStartMediaPlayer(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer);
+extern "C" jboolean nativeStopMediaPlayer(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer);
+extern "C" jboolean nativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer);
+extern "C" void nativeSetSurface(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer, jobject surface);
+
 
 
 #endif //SKYMEDIAPLAYER_NATIVE_LIB_H
