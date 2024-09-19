@@ -9,9 +9,13 @@ extern "C"{
 };
 #include "SkyPacketQueue.h"
 #include "SkyFrameQueue.h"
+
+
+class SkyMediaPlayer;
+
 class SkyDecoder{
 public:
-    virtual bool Init(AVCodecParameters *codecpar,
+    virtual bool Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
                       const std::shared_ptr<SkyPacketQueue>& packetQueue,
                       const std::shared_ptr<SkyFrameQueue>& frameQueue) = 0;
     virtual bool Start() = 0;

@@ -68,6 +68,7 @@ void SkyFrameQueue::FlushWriteableFrame() {
 
 const SkyFrame *SkyFrameQueue::GetReadableFrame() {
     std::unique_lock<std::mutex> lck(m_mutex);
+
     if(m_live_size == MAX_FRAMES && m_running){
         m_condition_read.wait(lck);
     }
@@ -75,7 +76,6 @@ const SkyFrame *SkyFrameQueue::GetReadableFrame() {
     if(!m_running){
         return nullptr;
     }
-
     return &m_frame_queue[m_read_pos];
 }
 

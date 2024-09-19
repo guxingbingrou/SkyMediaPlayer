@@ -112,7 +112,7 @@ bool VideoRenderer::Init() {
 }
 
 bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
-    INFO("RenderPicture");
+//    INFO("RenderPicture");
     if (!MakeCurrent()) {
         return false;
     }
@@ -139,11 +139,11 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
         return 0;
     }
 
-    INFO("egl: %dx%d,  native:%dx%d, format:%d", egl_width,egl_height, width, height, format);
-
-
-    INFO("glViewport:%dx%d", skyFrame->frame->width, skyFrame->frame->height);
-    INFO("frame:%d,%d.%d", skyFrame->frame->linesize[0], skyFrame->frame->linesize[1],skyFrame->frame->linesize[2]);
+//    INFO("egl: %dx%d,  native:%dx%d, format:%d", egl_width,egl_height, width, height, format);
+//
+//
+//    INFO("glViewport:%dx%d", skyFrame->frame->width, skyFrame->frame->height);
+//    INFO("frame:%d,%d.%d", skyFrame->frame->linesize[0], skyFrame->frame->linesize[1],skyFrame->frame->linesize[2]);
 
     glViewport(0, 0, skyFrame->frame->width, skyFrame->frame->height);
 

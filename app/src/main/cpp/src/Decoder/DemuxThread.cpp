@@ -4,7 +4,7 @@
 
 #include "DemuxThread.h"
 #include "AndroidLog.h"
-bool DemuxThread::Init(const std::string& url,
+bool DemuxThread::Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
                        const std::shared_ptr<SkyFrameQueue>& audioFrameQueue,
                        const std::shared_ptr<SkyFrameQueue>& videoFrameQueue,
                        const std::shared_ptr<SkyFrameQueue>& subtitleFrameQueue) {
@@ -32,7 +32,7 @@ bool DemuxThread::Init(const std::string& url,
         stream = m_avformat_context->streams[ret];
         m_audio_decoder = std::unique_ptr<SkyDecoder>(MediaDecoderFactory::CreateMediaDecoder());
         m_audio_packet_queue = std::make_shared<SkyPacketQueue>();
-        m_audio_decoder->Init(stream->codecpar, m_audio_packet_queue, audioFrameQueue);
+        m_audio_decoder->Init(mediaPlayer, stream->codecpar, m_audio_packet_queue, audioFrameQueue);
     }
 
     ret = av_find_best_stream(m_avformat_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
@@ -43,7 +43,7 @@ bool DemuxThread::Init(const std::string& url,
         stream = m_avformat_context->streams[ret];
         m_video_decoder = std::unique_ptr<SkyDecoder>(MediaDecoderFactory::CreateMediaDecoder());
         m_video_packet_queue = std::make_shared<SkyPacketQueue>();
-        m_video_decoder->Init(stream->codecpar, m_video_packet_queue, videoFrameQueue);
+        m_video_decoder->Init(mediaPlayer, stream->codecpar, m_video_packet_queue, videoFrameQueue);
     }
 
     INFO("INIT");

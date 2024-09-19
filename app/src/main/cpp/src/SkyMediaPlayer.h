@@ -21,6 +21,9 @@ public:
     bool Stop();
     bool Release();
 
+    void OnSizeChanged(int width, int height);
+    void OnAudioParamsChanged(int sampleRate, int channels);
+
 private:
     std::unique_ptr<DemuxThread> m_demuxer;
     std::unique_ptr<RenderThread> m_renderer;

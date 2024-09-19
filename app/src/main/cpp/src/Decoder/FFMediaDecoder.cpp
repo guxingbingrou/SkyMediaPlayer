@@ -5,9 +5,11 @@
 #include "FFMediaDecoder.h"
 #include "AndroidLog.h"
 
-bool FFMediaDecoder::Init(AVCodecParameters *codecpar,
+
+bool FFMediaDecoder::Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
                           const std::shared_ptr<SkyPacketQueue>& packetQueue,
                           const std::shared_ptr<SkyFrameQueue>& frameQueue) {
+    m_media_player = mediaPlayer;
     m_packet_queue = packetQueue;
     m_frame_queue = frameQueue;
 
@@ -32,6 +34,7 @@ bool FFMediaDecoder::Init(AVCodecParameters *codecpar,
         ERROR("failed to open %s codec", avcodec_get_name(codecpar->codec_id));
         return false;
     }
+
 
     return true;
 }
@@ -118,8 +121,9 @@ void FFMediaDecoder::Decode() {
                 ERROR("error during decoding (%s)", av_err2str(ret));
                 return;
             }
-//            INFO("GetWriteableFrame");
+
             if(m_codec_context->codec->type == AVMEDIA_TYPE_VIDEO){
+//                INFO("GetWriteableFrame");
                 SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
                 if(skyFrame == nullptr || skyFrame->frame == nullptr){
                     ERROR("GetWriteableFrame failed");
@@ -134,7 +138,7 @@ void FFMediaDecoder::Decode() {
                     //TODO  refresh layout
                 }
 
-
+//                INFO("GetWriteableFrame success");
                 av_frame_ref(skyFrame->frame, avFrame);
                 m_frame_queue->FlushWriteableFrame();
             }else if(m_codec_context->codec->type == AVMEDIA_TYPE_AUDIO){
@@ -143,7 +147,7 @@ void FFMediaDecoder::Decode() {
                     ERROR("GetWriteableFrame failed");
                     break;
                 }
-                INFO("GetWriteableFrame success");
+
                 av_frame_ref(skyFrame->frame, avFrame);
                 m_frame_queue->FlushWriteableFrame();
             }

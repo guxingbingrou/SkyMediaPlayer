@@ -14,13 +14,16 @@ void RenderThread::Init(ANativeWindow *native_window,
     m_subtitle_queue = subtitleFrameQueue;
 
     m_video_renderer = std::make_unique<VideoRenderer>();
-    m_audio_player = std::make_unique<AudioPlayer>();
-
     m_video_renderer->SetWindow(native_window);
+
+    m_audio_player = std::make_unique<AudioPlayer>();
+    m_audio_player->Init(audioFrameQueue);
+
 
 }
 
 bool RenderThread::Start() {
+    m_audio_player->Start();
     m_running = true;
     m_thread = std::thread(&RenderThread::Loop, this);
     return false;
@@ -60,10 +63,10 @@ void RenderThread::Loop() {
             }
         }
 
-        INFO("GetReadableFrame success");
+//        INFO("GetReadableFrame success");
 
         m_video_renderer->RenderPicture(skyFrame);
-        INFO("RenderPicture success");
+//        INFO("RenderPicture success");
         m_video_queue->FlushReadableFrame();
         std::this_thread::sleep_for(std::chrono::milliseconds(30));
     }

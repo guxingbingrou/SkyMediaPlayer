@@ -16,14 +16,14 @@ extern "C"{
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 
-};
+}
 
 class DemuxThread {
 public:
     DemuxThread() = default;
     ~DemuxThread() = default;
 
-    bool Init(const std::string& url,
+    bool Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
               const std::shared_ptr<SkyFrameQueue>& audioFrameQueue,
               const std::shared_ptr<SkyFrameQueue>& videoFrameQueue,
               const std::shared_ptr<SkyFrameQueue>& subtitleFrameQueue);
