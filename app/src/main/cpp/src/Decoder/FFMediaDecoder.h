@@ -29,8 +29,8 @@ private:
     std::thread m_thread;
     bool m_running = false;
 
-    int m_video_width = 1080;
-    int m_video_height = 1920;
+    int m_video_width = 0;
+    int m_video_height = 0;
 
 };
 

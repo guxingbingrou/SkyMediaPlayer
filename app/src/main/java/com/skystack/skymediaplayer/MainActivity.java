@@ -29,7 +29,7 @@ import android.widget.Toast;
 
 import com.skystack.skymediaplayer.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MediaPlayerObserver {
 
     // Used to load the 'SkyMediaPlayer' library on application startup.
     static {
@@ -46,6 +46,11 @@ public class MainActivity extends AppCompatActivity {
 
     private MediaPlayer mediaPlayer = null;
     private SurfaceRenderView surfaceView = null;
+    private int surfaceWidth = 0;
+    private int surfaceHeight = 0;
+    private boolean setUri = false;
+    private boolean setSurface = false;
+    private boolean running = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        mediaPlayer = MediaPlayer.CreateMediaPlayer(MediaPlayer.MediaPlayerFFmpeg);
+        mediaPlayer = MediaPlayer.CreateMediaPlayer(MediaPlayer.MediaPlayerFFmpeg, this);
 
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -73,23 +78,25 @@ public class MainActivity extends AppCompatActivity {
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
                 Log.i(TAG, "surfaceCreated");
                 mediaPlayer.SetSurface(holder.getSurface());
-                mediaPlayer.Start();
+                setSurface = true;
+                tryStartMediaPlayer();
             }
 
             @Override
             public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                Log.i(TAG, "wxh: " + width + "x" + height);
+                Log.i(TAG, "surfaceChanged wxh: " + width + "x" + height);
+                if(mediaPlayer !=null && width * height !=0){
+                    tryStartMediaPlayer();
+                }
             }
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
                 Log.i(TAG, "surfaceDestroyed");
                 mediaPlayer.SetSurface(null);
+                setSurface = false;
             }
         });
-
-
-
 
 
         if (!allPermissionsGranted()) {
@@ -97,6 +104,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    void tryStartMediaPlayer(){
+        if(running)
+            return;
+        if(surfaceView !=null && surfaceWidth*surfaceHeight!=0 && setSurface && setUri && mediaPlayer != null){
+            mediaPlayer.Start();
+            running = true;
+        }
     }
 
     private boolean allPermissionsGranted() {
@@ -157,16 +173,24 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "filePath: " + path, Toast.LENGTH_LONG).show();
                 if(path != null){
                     mediaPlayer.SetSource(path);
-                    surfaceView.setAspectRatio(1080,606);
-                    mediaPlayer.Start();
+                    setUri = true;
+                    tryStartMediaPlayer();
                 }
             }
         }
     }
 
 
+    @Override
+    public void OnResolutionChanged(int width, int height) {
+        if(width == surfaceWidth && height == surfaceHeight)
+            return;
 
-
-
-
+        Log.i(TAG, "OnResolutionChanged: " + width + "x" + height);
+        surfaceWidth = width;
+        surfaceHeight = height;
+        if(surfaceView != null){
+            surfaceView.setAspectRatio(surfaceWidth, surfaceHeight);
+        }
+    }
 }

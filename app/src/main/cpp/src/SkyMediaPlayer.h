@@ -10,9 +10,11 @@
 #include "Decoder/DemuxThread.h"
 #include "Renderer/RenderThread.h"
 #include "SkyFrameQueue.h"
+#include "MediaPLayerObserver.h"
 
 class SkyMediaPlayer {
 public:
+    SkyMediaPlayer(const std::shared_ptr<MediaPlayerObserver>& observer);
     bool Init();
     bool SetSource(const char* url);
     bool SetSurface( JNIEnv* env, jobject surface);
@@ -25,6 +27,7 @@ public:
     void OnAudioParamsChanged(int sampleRate, int channels);
 
 private:
+    std::shared_ptr<MediaPlayerObserver> m_observer;
     std::unique_ptr<DemuxThread> m_demuxer;
     std::unique_ptr<RenderThread> m_renderer;
     ANativeWindow* m_native_window = nullptr;

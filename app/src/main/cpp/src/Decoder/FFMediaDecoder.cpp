@@ -4,6 +4,7 @@
 
 #include "FFMediaDecoder.h"
 #include "AndroidLog.h"
+#include "SkyMediaPlayer.h"
 
 
 bool FFMediaDecoder::Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
@@ -130,12 +131,12 @@ void FFMediaDecoder::Decode() {
                     break;
                 }
 
-                if(m_video_width != skyFrame->frame->width || m_video_height != skyFrame->frame->height){
+                if(m_video_width != avFrame->width || m_video_height != avFrame->height){
 
-                    m_video_width = skyFrame->frame->width;
-                    m_video_height = skyFrame->frame->height;
+                    m_video_width = avFrame->width;
+                    m_video_height = avFrame->height;
+                    m_media_player->OnSizeChanged(m_video_width, m_video_height);
 
-                    //TODO  refresh layout
                 }
 
 //                INFO("GetWriteableFrame success");

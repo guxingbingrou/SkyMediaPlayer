@@ -46,6 +46,7 @@ public class SurfaceRenderView extends SurfaceView {
     public void setAspectRatio(int width, int height){
         if(width * height <=0 ) return;
         Log.i(TAG, "setAspectRatio  width x height: " + width + " x " + height);
+        getHolder().setFixedSize(width, height);
         mRatioHegiht = height;
         mRatioWidth = width;
         requestLayout();

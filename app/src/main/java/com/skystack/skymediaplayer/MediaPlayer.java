@@ -7,12 +7,12 @@ public class MediaPlayer {
     static public int MediaPlayerFFmpeg = 1;
     static public int MediaPlayerMediaCodec = 2;
 
-    static public MediaPlayer CreateMediaPlayer(int type){
-        return new MediaPlayer(type);
+    static public MediaPlayer CreateMediaPlayer(int type, MediaPlayerObserver listener){
+        return new MediaPlayer(type, listener);
     }
 
-    private MediaPlayer(int type){
-        nativeMediaPlayer = nativeCreateMediaPlayer(type);
+    private MediaPlayer(int type, MediaPlayerObserver listener){
+        nativeMediaPlayer = nativeCreateMediaPlayer(type, listener);
     }
 
     public boolean SetSource(String path){
@@ -37,8 +37,7 @@ public class MediaPlayer {
 
 
 
-
-    private native long nativeCreateMediaPlayer(int type);
+    private native long nativeCreateMediaPlayer(int type, MediaPlayerObserver listener);
     private native boolean nativeSetSource(long nativeMediaPlayer, String path);
     private native boolean nativeStartMediaPlayer(long nativeMediaPlayer);
     private native boolean nativeStopMediaPlayer(long nativeMediaPlayer);

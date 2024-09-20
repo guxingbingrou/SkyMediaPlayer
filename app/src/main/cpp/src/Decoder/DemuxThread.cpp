@@ -4,6 +4,7 @@
 
 #include "DemuxThread.h"
 #include "AndroidLog.h"
+#include "SkyMediaPlayer.h"
 bool DemuxThread::Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
                        const std::shared_ptr<SkyFrameQueue>& audioFrameQueue,
                        const std::shared_ptr<SkyFrameQueue>& videoFrameQueue,
@@ -41,12 +42,15 @@ bool DemuxThread::Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
     }else{
         m_video_stream_index = ret;
         stream = m_avformat_context->streams[ret];
+
+        mediaPlayer->OnSizeChanged(stream->codecpar->width, stream->codecpar->height);
+
+
         m_video_decoder = std::unique_ptr<SkyDecoder>(MediaDecoderFactory::CreateMediaDecoder());
         m_video_packet_queue = std::make_shared<SkyPacketQueue>();
         m_video_decoder->Init(mediaPlayer, stream->codecpar, m_video_packet_queue, videoFrameQueue);
     }
 
-    INFO("INIT");
     ValidMediaSteams();
     INFO("INIT success");
     return true;
@@ -85,7 +89,6 @@ bool DemuxThread::StopAndRelease() {
 }
 
 void DemuxThread::Loop() {
-    INFO("Loop");
     ValidMediaSteams();
     m_packet = av_packet_alloc();
     if(!m_packet){
@@ -94,24 +97,20 @@ void DemuxThread::Loop() {
     }
     int ret = 0;
     while (m_running){
-//        INFO("av_read_frame");
         ret = av_read_frame(m_avformat_context, m_packet);
         if(ret < 0){
             INFO("decode done");
             break;
         }
-//        INFO("QueuePacket");
+
         if(m_packet->stream_index == m_audio_stream_index){
             m_audio_packet_queue->QueuePacket(m_packet);
         }else if(m_packet->stream_index == m_video_stream_index){
             m_video_packet_queue->QueuePacket(m_packet);
         }
 
-
-//        INFO("av_packet_unref");
         av_packet_unref(m_packet);
     }
-    INFO("Loop Leave");
     av_packet_free(&m_packet);
     m_packet = nullptr;
 }

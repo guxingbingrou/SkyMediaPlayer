@@ -112,7 +112,8 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         src/jni/jni_onload.cc
         src/jni/jvm.cc
-        src/jni/native-lib.cpp)
+        src/jni/native-lib.cpp
+        src/jni/NativeObserver.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

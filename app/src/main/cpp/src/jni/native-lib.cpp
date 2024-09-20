@@ -4,9 +4,11 @@
 #include "native-lib.h"
 #include "jni/jvm.h"
 #include "SkyMediaPlayer.h"
+#include "NativeObserver.h"
 
-jlong nativeCreateMediaPlayer(JNIEnv* env, jobject jobject1, jint type){
-    SkyMediaPlayer* skyMediaPlayer = new SkyMediaPlayer();
+jlong nativeCreateMediaPlayer(JNIEnv* env, jobject jobject1, jint type, jobject observer){
+    SkyMediaPlayer* skyMediaPlayer = new SkyMediaPlayer(
+            std::make_shared<NativeObserver>(env->NewGlobalRef(observer)));
     skyMediaPlayer->Init();
     return reinterpret_cast<jlong>(skyMediaPlayer);
 }

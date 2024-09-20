@@ -3,6 +3,9 @@
 #include "jni/jvm.h"
 #include "AndroidLog.h"
 #include "jni/native-lib.h"
+#include "global_java_class.h"
+
+jclass gObserver;
 
 static int registerNativeMethods(JNIEnv* env, const char* className,JNINativeMethod* getMethods,int methodsNum){
     jclass clazz;
@@ -19,7 +22,7 @@ static int registerNativeMethods(JNIEnv* env, const char* className,JNINativeMet
 }
 
 static JNINativeMethod getMethods[] = {
-        {"nativeCreateMediaPlayer","(I)J", reinterpret_cast<void*>(nativeCreateMediaPlayer)},
+        {"nativeCreateMediaPlayer","(ILcom/skystack/skymediaplayer/MediaPlayerObserver;)J", reinterpret_cast<void*>(nativeCreateMediaPlayer)},
         {"nativeSetSource","(JLjava/lang/String;)Z", reinterpret_cast<void*>(nativeSetSource)},
         {"nativeStartMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStartMediaPlayer)},
         {"nativeStopMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStopMediaPlayer)},
@@ -28,13 +31,12 @@ static JNINativeMethod getMethods[] = {
 };
 
 static void loadNativeClass(JNIEnv* env){
-//    jobject javaVideoDecoderObserver = env->FindClass(
-//            "com/skystack/skymediaplayer/MediaPlayer/VideoDecoderObserver");
-//    gObserver = static_cast<jclass>(env->NewGlobalRef(javaVideoDecoderObserver));
+    jclass JavaObserver = env->FindClass("com/skystack/skymediaplayer/MediaPlayerObserver");
+    gObserver = static_cast<jclass>(env->NewGlobalRef(JavaObserver));
 }
 
 static void unloadNativeClass(JNIEnv* env){
-//    env->DeleteGlobalRef(gObserver);
+    env->DeleteGlobalRef(gObserver);
 }
 
 extern "C" jint JNIEXPORT JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved) {

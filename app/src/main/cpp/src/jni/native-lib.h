@@ -7,7 +7,7 @@
 
 #include "jni.h"
 
-extern "C" jlong nativeCreateMediaPlayer(JNIEnv* env, jobject jobject1, jint type);
+extern "C" jlong nativeCreateMediaPlayer(JNIEnv* env, jobject jobject1, jint type, jobject observer);
 extern "C" jboolean nativeSetSource(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer, jstring path);
 extern "C" jboolean nativeStartMediaPlayer(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer);
 extern "C" jboolean nativeStopMediaPlayer(JNIEnv* env, jobject jobject1, jlong nativeMediaPlayer);

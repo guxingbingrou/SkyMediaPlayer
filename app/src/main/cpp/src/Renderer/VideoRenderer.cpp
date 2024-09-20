@@ -117,16 +117,6 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
         return false;
     }
 
-    int format = ANativeWindow_getFormat(m_native_window);
-    if (ANativeWindow_setBuffersGeometry(m_native_window, skyFrame->frame->width, skyFrame->frame->height, format)) {
-        ERROR("ANativeWindow_setBuffersGeometry failed");
-        eglTerminate(m_display);
-        return false;
-    }
-
-    int32_t width = ANativeWindow_getWidth(m_native_window);
-    int32_t height = ANativeWindow_getHeight(m_native_window);
-
     EGLint egl_width = 0;
     if (!eglQuerySurface(m_display, m_surface, EGL_WIDTH, &egl_width)) {
         ERROR("[EGL] eglQuerySurface(EGL_WIDTH) returned error %d", eglGetError());
@@ -139,7 +129,19 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
         return 0;
     }
 
-//    INFO("egl: %dx%d,  native:%dx%d, format:%d", egl_width,egl_height, width, height, format);
+    if(egl_width != skyFrame->frame->width || egl_height != skyFrame->frame->height){
+        int format = ANativeWindow_getFormat(m_native_window);
+        if (ANativeWindow_setBuffersGeometry(m_native_window, skyFrame->frame->width, skyFrame->frame->height, format)) {
+            ERROR("ANativeWindow_setBuffersGeometry failed");
+            eglTerminate(m_display);
+            return false;
+        }
+
+        int32_t width = ANativeWindow_getWidth(m_native_window);
+        int32_t height = ANativeWindow_getHeight(m_native_window);
+        INFO("egl: %dx%d,  native:%dx%d, format:%d", egl_width,egl_height, width, height, format);
+    }
+
 //
 //
 //    INFO("glViewport:%dx%d", skyFrame->frame->width, skyFrame->frame->height);

@@ -5,6 +5,9 @@
 #include "SkyMediaPlayer.h"
 #include "AndroidLog.h"
 
+SkyMediaPlayer::SkyMediaPlayer(const std::shared_ptr<MediaPlayerObserver>& observer){
+    m_observer = observer;
+}
 bool SkyMediaPlayer::SetSource(const char *url) {
     m_url = std::string(url);
 
@@ -93,6 +96,8 @@ bool SkyMediaPlayer::Release() {
 
 void SkyMediaPlayer::OnSizeChanged(int width, int height) {
     INFO("OnSizeChanged: %dx%d", width, height);
+    if(m_observer)
+        m_observer->OnSizeChanged(width, height);
 }
 
 void SkyMediaPlayer::OnAudioParamsChanged(int sampleRate, int channels) {
