@@ -88,3 +88,7 @@ void SkyFrameQueue::FlushReadableFrame() {
 
 }
 
+bool SkyFrameQueue::Empty() {
+    return m_live_size == MAX_FRAMES;
+}
+

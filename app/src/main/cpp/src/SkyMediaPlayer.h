@@ -25,6 +25,7 @@ public:
 
     void OnSizeChanged(int width, int height);
     void OnAudioParamsChanged(int sampleRate, int channels);
+    void OnTimeBaseChanged(const AVMediaType& mediaType, const AVRational& timebase);
 
 private:
     std::shared_ptr<MediaPlayerObserver> m_observer;
@@ -34,6 +35,10 @@ private:
     std::shared_ptr<SkyFrameQueue> m_audio_frame_queue;
     std::shared_ptr<SkyFrameQueue> m_video_frame_queue;
     std::shared_ptr<SkyFrameQueue> m_subtitle_queue;
+
+    AVRational m_audio_timebase;
+    AVRational m_video_timebase;
+    AVRational m_subtitle_timebase;
 
     std::string m_url;
     std::atomic<bool> m_init;

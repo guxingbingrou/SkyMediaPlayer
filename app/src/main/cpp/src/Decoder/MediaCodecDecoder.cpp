@@ -4,7 +4,7 @@
 
 #include "MediaCodecDecoder.h"
 
-bool MediaCodecDecoder::Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
+bool MediaCodecDecoder::Init(SkyMediaPlayer* mediaPlayer, AVStream* stream,
                              const std::shared_ptr<SkyPacketQueue>& packetQueue,
                              const std::shared_ptr<SkyFrameQueue>& frameQueue) {
     m_packet_queue = packetQueue;

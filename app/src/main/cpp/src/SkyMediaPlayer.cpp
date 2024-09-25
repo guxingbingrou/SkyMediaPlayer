@@ -24,6 +24,10 @@ bool SkyMediaPlayer::SetSource(const char *url) {
 bool SkyMediaPlayer::Init() {
     m_demuxer = std::make_unique<DemuxThread>();
     m_renderer = std::make_unique<RenderThread>();
+    m_renderer->SetTimebase(AVMEDIA_TYPE_AUDIO, m_audio_timebase);
+    m_renderer->SetTimebase(AVMEDIA_TYPE_VIDEO, m_video_timebase);
+    m_renderer->SetTimebase(AVMEDIA_TYPE_SUBTITLE, m_subtitle_timebase);
+
 
     m_audio_frame_queue = std::make_shared<SkyFrameQueue>();
     m_video_frame_queue = std::make_shared<SkyFrameQueue>();
@@ -102,4 +106,16 @@ void SkyMediaPlayer::OnSizeChanged(int width, int height) {
 
 void SkyMediaPlayer::OnAudioParamsChanged(int sampleRate, int channels) {
 
+}
+
+void SkyMediaPlayer::OnTimeBaseChanged(const AVMediaType& mediaType, const AVRational& timebase) {
+    if(mediaType == AVMEDIA_TYPE_AUDIO){
+        m_audio_timebase = timebase;
+    }else if(mediaType == AVMEDIA_TYPE_VIDEO){
+        m_video_timebase = timebase;
+    }else if(mediaType == AVMEDIA_TYPE_SUBTITLE){
+        m_subtitle_timebase = timebase;
+    }
+    if(m_renderer)
+        m_renderer->SetTimebase(mediaType, timebase);
 }

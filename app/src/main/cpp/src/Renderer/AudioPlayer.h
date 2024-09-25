@@ -14,14 +14,16 @@ extern "C"{
 #include "libavutil/opt.h"
 };
 #include "SkyFrameQueue.h"
+#include "SkyClock.h"
 
 class AudioPlayer {
 public:
-    int Init(const std::shared_ptr<SkyFrameQueue>& audioFrameQueue);
+    int Init(const std::shared_ptr<SkyFrameQueue>& audioFrameQueue, const std::shared_ptr<SkyClock>& skyClock);
     int Start();
     int Pause();
     int Stop();
     int Destroy();
+    void SetTimebase(const AVRational& timebase);
 
 private:
     int CreateSLEngine();
@@ -32,6 +34,7 @@ private:
     static void AudioPlayerCallback(SLAndroidSimpleBufferQueueItf bufferQueueItf, void* context);
     void Loop();
     SwrContext* m_swr_context = nullptr;
+    AVRational m_audio_timebase;
 
     SLObjectItf m_engine = nullptr;
     SLEngineItf m_engine_interface = nullptr;
@@ -46,6 +49,7 @@ private:
     std::mutex m_mutex;
     std::condition_variable m_condition;
     std::shared_ptr<SkyFrameQueue> m_audio_queue;
+    std::shared_ptr<SkyClock> m_clock;
 
     uint8_t* m_buffers = nullptr;
     int m_bits_per_sample = SL_PCMSAMPLEFORMAT_FIXED_16;
@@ -53,6 +57,7 @@ private:
     int m_frames_per_buffer = 0;
     int m_bytes_per_buffer = 0;
     int m_buffer_capacity = 0;
+    int m_bytes_per_sec = 0;
     int m_channels = 2;
     int m_samplerate = SL_SAMPLINGRATE_44_1;
     int m_buffer_count = 0;

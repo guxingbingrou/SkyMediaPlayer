@@ -8,7 +8,7 @@
 #include "SkyDecoder.h"
 class MediaCodecDecoder : public SkyDecoder{
 public:
-    virtual bool Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
+    virtual bool Init(SkyMediaPlayer* mediaPlayer, AVStream* stream,
                       const std::shared_ptr<SkyPacketQueue>& packetQueue,
                       const std::shared_ptr<SkyFrameQueue>& frameQueue) override;
     virtual bool Start() override;

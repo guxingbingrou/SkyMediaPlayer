@@ -7,32 +7,33 @@
 #include "SkyMediaPlayer.h"
 
 
-bool FFMediaDecoder::Init(SkyMediaPlayer* mediaPlayer, AVCodecParameters *codecpar,
+bool FFMediaDecoder::Init(SkyMediaPlayer* mediaPlayer, AVStream* stream,
                           const std::shared_ptr<SkyPacketQueue>& packetQueue,
                           const std::shared_ptr<SkyFrameQueue>& frameQueue) {
     m_media_player = mediaPlayer;
     m_packet_queue = packetQueue;
     m_frame_queue = frameQueue;
 
-    const AVCodec* codec = avcodec_find_decoder(codecpar->codec_id);
+
+    const AVCodec* codec = avcodec_find_decoder(stream->codecpar->codec_id);
     if(!codec){
-        ERROR("failed to find %s codec", avcodec_get_name(codecpar->codec_id));
+        ERROR("failed to find %s codec", avcodec_get_name(stream->codecpar->codec_id));
         return false;
     }
 
     m_codec_context = avcodec_alloc_context3(codec);
     if(!m_codec_context){
-        ERROR("failed to allocate %s codec context", avcodec_get_name(codecpar->codec_id));
+        ERROR("failed to allocate %s codec context", avcodec_get_name(stream->codecpar->codec_id));
         return false;
     }
 
-    if( avcodec_parameters_to_context(m_codec_context, codecpar) < 0){
-        ERROR("failed to copy %s codec parameters to decoder context", avcodec_get_name(codecpar->codec_id));
+    if( avcodec_parameters_to_context(m_codec_context, stream->codecpar) < 0){
+        ERROR("failed to copy %s codec parameters to decoder context", avcodec_get_name(stream->codecpar->codec_id));
         return false;
     }
 
     if( avcodec_open2(m_codec_context, codec, nullptr) < 0){
-        ERROR("failed to open %s codec", avcodec_get_name(codecpar->codec_id));
+        ERROR("failed to open %s codec", avcodec_get_name(stream->codecpar->codec_id));
         return false;
     }
 
@@ -104,7 +105,6 @@ void FFMediaDecoder::Decode() {
                 continue;
             }
         }
-//        INFO("avcodec_send_packet");
         ret = avcodec_send_packet(m_codec_context, packet);
         if(ret < 0){
             ERROR("failed to submitting a packet for decoding (%s)", av_err2str(ret));
@@ -112,7 +112,7 @@ void FFMediaDecoder::Decode() {
         }
 
         while (ret >=0){
-//            INFO("avcodec_receive_frame");
+
             ret = avcodec_receive_frame(m_codec_context, avFrame);
             if(ret < 0) {
                 if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
@@ -143,16 +143,17 @@ void FFMediaDecoder::Decode() {
                 av_frame_ref(skyFrame->frame, avFrame);
                 m_frame_queue->FlushWriteableFrame();
             }else if(m_codec_context->codec->type == AVMEDIA_TYPE_AUDIO){
+//                INFO("GetWriteableFrame");
                 SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
                 if(skyFrame == nullptr || skyFrame->frame == nullptr){
                     ERROR("GetWriteableFrame failed");
                     break;
                 }
-
+//                INFO("GetWriteableFrame success");
                 av_frame_ref(skyFrame->frame, avFrame);
                 m_frame_queue->FlushWriteableFrame();
             }
-//            INFO("av_frame_unref");
+
             av_frame_unref(avFrame);
 
         }

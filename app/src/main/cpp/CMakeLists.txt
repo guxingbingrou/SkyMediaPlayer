@@ -90,6 +90,7 @@ add_library(SkyMediaEngine
         src/Decoder/SkyPacketQueue.cpp
         src/SkyFrameQueue.cpp
         src/SkyMediaPlayer.cpp
+        src/Renderer/SkyClock.cpp
         )
 
 target_link_libraries(SkyMediaEngine

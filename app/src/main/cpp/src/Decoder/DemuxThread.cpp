@@ -31,9 +31,10 @@ bool DemuxThread::Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
     }else{
         m_audio_stream_index = ret;
         stream = m_avformat_context->streams[ret];
+        mediaPlayer->OnTimeBaseChanged(AVMEDIA_TYPE_AUDIO, stream->time_base);
         m_audio_decoder = std::unique_ptr<SkyDecoder>(MediaDecoderFactory::CreateMediaDecoder());
         m_audio_packet_queue = std::make_shared<SkyPacketQueue>();
-        m_audio_decoder->Init(mediaPlayer, stream->codecpar, m_audio_packet_queue, audioFrameQueue);
+        m_audio_decoder->Init(mediaPlayer, stream, m_audio_packet_queue, audioFrameQueue);
     }
 
     ret = av_find_best_stream(m_avformat_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
@@ -44,11 +45,11 @@ bool DemuxThread::Init(SkyMediaPlayer* mediaPlayer, const std::string& url,
         stream = m_avformat_context->streams[ret];
 
         mediaPlayer->OnSizeChanged(stream->codecpar->width, stream->codecpar->height);
-
+        mediaPlayer->OnTimeBaseChanged(AVMEDIA_TYPE_VIDEO, stream->time_base);
 
         m_video_decoder = std::unique_ptr<SkyDecoder>(MediaDecoderFactory::CreateMediaDecoder());
         m_video_packet_queue = std::make_shared<SkyPacketQueue>();
-        m_video_decoder->Init(mediaPlayer, stream->codecpar, m_video_packet_queue, videoFrameQueue);
+        m_video_decoder->Init(mediaPlayer, stream, m_video_packet_queue, videoFrameQueue);
     }
 
     ValidMediaSteams();
@@ -104,9 +105,13 @@ void DemuxThread::Loop() {
         }
 
         if(m_packet->stream_index == m_audio_stream_index){
+//            INFO("QueuePacket");
             m_audio_packet_queue->QueuePacket(m_packet);
+//            INFO("QueuePacket success");
         }else if(m_packet->stream_index == m_video_stream_index){
+//            INFO("QueuePacket");
             m_video_packet_queue->QueuePacket(m_packet);
+//            INFO("QueuePacket success");
         }
 
         av_packet_unref(m_packet);

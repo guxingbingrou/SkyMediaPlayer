@@ -4,9 +4,14 @@
 
 #include "AudioPlayer.h"
 #include "AndroidLog.h"
+extern "C"{
+#include "libavutil/time.h"
+}
 
-int AudioPlayer::Init(const std::shared_ptr<SkyFrameQueue> &audioFrameQueue) {
+
+int AudioPlayer::Init(const std::shared_ptr<SkyFrameQueue> &audioFrameQueue, const std::shared_ptr<SkyClock>& skyClock) {
     m_audio_queue = audioFrameQueue;
+    m_clock = skyClock;
 
     if(CreateSLEngine() != SL_RESULT_SUCCESS){
         ERROR("create opensl engine failed");
@@ -124,6 +129,7 @@ int AudioPlayer::CreateAudioPlayer() {
     m_bytes_per_frame = m_channels * m_bits_per_sample / 8;
     m_frames_per_buffer = BUFFER_MILLI * m_samplerate * 1000 / 1000000;
     m_bytes_per_buffer = m_bytes_per_frame * m_frames_per_buffer;
+    m_bytes_per_sec = av_samples_get_buffer_size(nullptr, m_channels, m_samplerate*1000, m_format, 1);
     m_buffer_capacity = m_bytes_per_buffer * MAX_BUFFER_COUNTS;
     m_buffers = static_cast<uint8_t *>(malloc(m_buffer_capacity));
 
@@ -203,6 +209,7 @@ void AudioPlayer::AudioPlayerCallback(SLAndroidSimpleBufferQueueItf bufferQueueI
     std::unique_lock<std::mutex> lck(opensl_pLayer->m_mutex);
 
     opensl_pLayer->m_condition.notify_one();
+//    INFO("notify_one");
 
 }
 
@@ -217,29 +224,36 @@ void AudioPlayer::Loop() {
     unsigned int out_size = 0;
 
     int len = 0;
+    double current_read_clock;
+
+    int64_t callback_time;
 
     while (m_running) {
         SLAndroidSimpleBufferQueueState slState = {0};
 
+//        INFO("lck:%d,%d", slState.count, m_buffer_count);
+        std::unique_lock<std::mutex> lck(m_mutex);
         SLresult slRet = (*m_player_buffer_queue)->GetState(m_player_buffer_queue, &slState);
         if (slRet != SL_RESULT_SUCCESS) {
             ERROR("slBufferQueueItf->GetState() failed\n");
         }
-
-        std::unique_lock<std::mutex> lck(m_mutex);
-
         if(slState.count >= m_buffer_count){
             m_condition.wait(lck);
         }
+
+        callback_time = av_gettime_relative();
+
 
         int total_size = m_bytes_per_buffer;
         buffer = m_buffers + buffer_index * m_bytes_per_buffer;
         uint8_t* buffer_start = buffer;
         buffer_index = (buffer_index + 1) % m_buffer_count;
-
+//        INFO("total_size");
         while (total_size){
             if(out_offset >= out_size){ //out buffer中的数据已全部读取，重新从frame queue中获取
+//                INFO("GetReadableFrame");
                 const SkyFrame* audioFrame = m_audio_queue->GetReadableFrame();
+//                INFO("GetReadableFrame done");
                 if(audioFrame == nullptr || audioFrame->frame == nullptr){
                     INFO("GetReadableFrame failed");
                     if(--failed_count)
@@ -255,6 +269,12 @@ void AudioPlayer::Loop() {
                 if(!m_swr_context){
                     InitSwr(frame);
                     INFO("init swr");
+                }
+
+                if(!isnan(frame->pts)){
+                    current_read_clock = frame->pts * av_q2d(m_audio_timebase) + (double)frame->nb_samples / frame->sample_rate;
+                }else{
+                    current_read_clock = NAN;
                 }
 
                 int out_count = frame->nb_samples + 256;
@@ -296,7 +316,13 @@ void AudioPlayer::Loop() {
 
         }
 
+        if(!isnan(current_read_clock)){
+            m_clock->SetClock(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec);
+//            m_clock->SetClockAtTime(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec - (double)BUFFER_MILLI / 1000, callback_time/1000000.0);
+        }
+
         (*m_player_buffer_queue)->Enqueue(m_player_buffer_queue, buffer_start, m_bytes_per_buffer);
+//        INFO("Enqueue");
 
     }
 
@@ -326,4 +352,8 @@ int AudioPlayer::InitSwr(AVFrame* frame) {
 
 
         return 0;
+}
+
+void AudioPlayer::SetTimebase(const AVRational &timebase) {
+    m_audio_timebase = timebase;
 }
