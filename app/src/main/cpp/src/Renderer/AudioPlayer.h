@@ -60,7 +60,7 @@ private:
     int m_bytes_per_sec = 0;
     int m_channels = 2;
     int m_samplerate = SL_SAMPLINGRATE_44_1;
-    int m_buffer_count = 0;
+
     AVSampleFormat m_format = AV_SAMPLE_FMT_S16;
 
     static constexpr int BUFFER_MILLI = 10;    //每个buffer持续时间 单位ms

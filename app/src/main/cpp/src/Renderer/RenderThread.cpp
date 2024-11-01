@@ -87,7 +87,7 @@ void RenderThread::Loop() {
 
         do {
             if(m_video_queue->Empty()){
-                DEBUG("m_video_queue->Empty()");
+//                DEBUG("m_video_queue->Empty()");
                 break;
             }else{
                 const SkyFrame* skyFrame = m_video_queue->GetReadableFrame();
@@ -133,7 +133,9 @@ void RenderThread::Loop() {
                         delay = last_duration;
                     }
                 }
-                INFO("diff:%f, delay:%f, last_duration:%f, sync_threshold:%f ", diff, delay, last_duration, sync_threshold);
+
+//                delay = last_duration;
+//                INFO("diff:%f, delay:%f, last_duration:%f, sync_threshold:%f ", diff, delay, last_duration, sync_threshold);
 
                 double time = av_gettime_relative() / 1000000.0;
                 if(isnan(frame_timer) || frame_timer > time){
@@ -142,11 +144,11 @@ void RenderThread::Loop() {
 
                 if(time < frame_timer + delay){ //当前时间在上一帧播放时间内，可以播放
                     remaining_time = FFMIN(frame_timer + delay - time, remaining_time);
-                    INFO("display frame_timer: %f, time:%f, delay:%f", frame_timer, time, delay);
-                    INFO("remaining_time: %f, delay:%f", remaining_time, delay);
+//                    INFO("display frame_timer: %f, time:%f, delay:%f", frame_timer, time, delay);
+//                    INFO("remaining_time: %f, delay:%f", remaining_time, delay);
                     break;
                 }else{  //当前时间已经超过上一帧播放区间，需要播放新帧
-                    INFO("wait frame_timer: %f, time:%f, delay:%f", frame_timer, time, delay);
+//                    INFO("wait frame_timer: %f, time:%f, delay:%f", frame_timer, time, delay);
                     frame_timer += delay;
                     if(delay >0 && time - frame_timer > SYNC_THRESHOLD_MAX){
                         frame_timer = time;
@@ -166,8 +168,11 @@ void RenderThread::Loop() {
 
         } while (m_running);
 
-        if(lastFrame.frame)
+        if(lastFrame.frame){
+//            INFO("RenderPicture");
             m_video_renderer->RenderPicture(&lastFrame);
+        }
+
 
     }
     if(lastFrame.frame){

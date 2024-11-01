@@ -126,6 +126,7 @@ void FFMediaDecoder::Decode() {
             if(m_codec_context->codec->type == AVMEDIA_TYPE_VIDEO){
 //                INFO("GetWriteableFrame");
                 SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
+//                INFO("GetWriteableFrame done");
                 if(skyFrame == nullptr || skyFrame->frame == nullptr){
                     ERROR("GetWriteableFrame failed");
                     break;

@@ -32,21 +32,21 @@ bool SkyPacketQueue::QueuePacket(AVPacket* packet) {
     if (!m_running)
         return false;
     std::unique_lock<std::mutex> lck(m_mutex);
-    if (m_queue.size() == MAX_PACKETS) {
-        m_condition_push.wait(lck);
-    }
+//    if (m_queue.size() == MAX_PACKETS) {
+//        m_condition_push.wait(lck);
+//    }
 
     if (!m_running)
         return false;
 
-    if (m_queue.size() < MAX_PACKETS) {
+//    if (m_queue.size() < MAX_PACKETS) {
         m_queue.push(*packet);
         av_packet_ref(&m_queue.back(), packet);
         m_condition_pop.notify_one();
         return true;
-    }
+//    }
 //    INFO("failed");
-    return false;
+//    return false;
 }
 
 bool SkyPacketQueue::DequeuePacket(AVPacket* packet) {

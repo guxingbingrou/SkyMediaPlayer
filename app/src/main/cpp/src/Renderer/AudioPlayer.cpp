@@ -101,7 +101,7 @@ int AudioPlayer::CreateSLEngine() {
 
 int AudioPlayer::CreateOutputMix() {
     SLresult result = SL_RESULT_SUCCESS;
-    const SLInterfaceID mids[1] = {SL_IID_ENVIRONMENTALREVERB};
+    const SLInterfaceID mids[1] = {SL_IID_VOLUME};
     const SLboolean mreq[1] = {SL_BOOLEAN_FALSE};
 
     result = (*m_engine_interface)->CreateOutputMix(m_engine_interface, &m_output_mix, 1,  mids, mreq);
@@ -124,17 +124,18 @@ int AudioPlayer::CreateAudioPlayer() {
 
     m_format = AV_SAMPLE_FMT_S16;
     m_bits_per_sample = SL_PCMSAMPLEFORMAT_FIXED_16;
-    m_samplerate = SL_SAMPLINGRATE_44_1 / 1000;
+//    m_samplerate = SL_SAMPLINGRATE_44_1 / 1000;
+//TODO 获取音频设备的采样率，以此来设置OpenSL ES的采样率
+    m_samplerate = SL_SAMPLINGRATE_48 / 1000;
     m_channels = 2;
     m_bytes_per_frame = m_channels * m_bits_per_sample / 8;
     m_frames_per_buffer = BUFFER_MILLI * m_samplerate * 1000 / 1000000;
     m_bytes_per_buffer = m_bytes_per_frame * m_frames_per_buffer;
-    m_bytes_per_sec = av_samples_get_buffer_size(nullptr, m_channels, m_samplerate*1000, m_format, 1);
+    m_bytes_per_sec = av_samples_get_buffer_size(nullptr, m_channels, m_samplerate, m_format, 1);
     m_buffer_capacity = m_bytes_per_buffer * MAX_BUFFER_COUNTS;
     m_buffers = static_cast<uint8_t *>(malloc(m_buffer_capacity));
 
-
-    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, MAX_BUFFER_COUNTS};
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
             static_cast<SLuint32>(m_channels),
@@ -150,7 +151,7 @@ int AudioPlayer::CreateAudioPlayer() {
     SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, m_output_mix};
     SLDataSink sink = {&outputMix, nullptr};
 
-    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME};
+    const SLInterfaceID ids[3] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE, SL_IID_VOLUME, SL_IID_PLAY};
     const SLboolean req[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
 
     result = (*m_engine_interface)->CreateAudioPlayer(m_engine_interface, &m_player, &slDataSource, &sink, 3, ids, req);
@@ -177,7 +178,7 @@ int AudioPlayer::CreateAudioPlayer() {
         return result;
     }
 
-    result = (*m_player)->GetInterface(m_player, SL_IID_BUFFERQUEUE, &m_player_buffer_queue);
+    result = (*m_player)->GetInterface(m_player, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &m_player_buffer_queue);
     if(result != SL_RESULT_SUCCESS){
         ERROR("opensl AudioPlayer get interface buffer queue failed(%d)", result);
         return result;
@@ -190,12 +191,12 @@ int AudioPlayer::CreateAudioPlayer() {
         return result;
     }
 
+    memset(m_buffers, 0, m_buffer_capacity);
     for(int i=0; i < MAX_BUFFER_COUNTS; ++i){
         result = (*m_player_buffer_queue)->Enqueue(m_player_buffer_queue, m_buffers + i * m_bytes_per_buffer, m_bytes_per_buffer);
         if(result != SL_RESULT_SUCCESS){
-            m_buffer_count = i;
-            WARNING("Enqueue failed(%d), %d", result, i);
-            break;
+            ERROR("Enqueue failed(%d), %d", result, i);
+            return result;
         }
 
     }
@@ -214,6 +215,20 @@ void AudioPlayer::AudioPlayerCallback(SLAndroidSimpleBufferQueueItf bufferQueueI
 }
 
 void AudioPlayer::Loop() {
+
+    //设置线程优先级为最高
+    struct sched_param schedParam;
+    int policy;
+    pthread_t thread = pthread_self();
+
+    if(pthread_getschedparam(thread, &policy, &schedParam) < 0){
+        ERROR("pthread_getschedparam failed");
+    }
+    schedParam.sched_priority = sched_get_priority_max(policy);
+    if(pthread_setschedparam(thread, policy, &schedParam) < 0){
+        ERROR("pthread_setschedparam failed");
+    }
+
     int failed_count = 5;
 
     uint8_t* buffer = nullptr;
@@ -228,18 +243,23 @@ void AudioPlayer::Loop() {
 
     int64_t callback_time;
 
+//    int frame_count = 0;
+
     while (m_running) {
         SLAndroidSimpleBufferQueueState slState = {0};
 
 //        INFO("lck:%d,%d", slState.count, m_buffer_count);
-        std::unique_lock<std::mutex> lck(m_mutex);
-        SLresult slRet = (*m_player_buffer_queue)->GetState(m_player_buffer_queue, &slState);
-        if (slRet != SL_RESULT_SUCCESS) {
-            ERROR("slBufferQueueItf->GetState() failed\n");
+        {
+            std::unique_lock<std::mutex> lck(m_mutex);
+            SLresult slRet = (*m_player_buffer_queue)->GetState(m_player_buffer_queue, &slState);
+            if (slRet != SL_RESULT_SUCCESS) {
+                ERROR("slBufferQueueItf->GetState() failed\n");
+            }
+            if(slState.count >= MAX_BUFFER_COUNTS){
+                m_condition.wait(lck);
+            }
         }
-        if(slState.count >= m_buffer_count){
-            m_condition.wait(lck);
-        }
+
 
         callback_time = av_gettime_relative();
 
@@ -247,8 +267,8 @@ void AudioPlayer::Loop() {
         int total_size = m_bytes_per_buffer;
         buffer = m_buffers + buffer_index * m_bytes_per_buffer;
         uint8_t* buffer_start = buffer;
-        buffer_index = (buffer_index + 1) % m_buffer_count;
-//        INFO("total_size");
+        buffer_index = (buffer_index + 1) % MAX_BUFFER_COUNTS;
+
         while (total_size){
             if(out_offset >= out_size){ //out buffer中的数据已全部读取，重新从frame queue中获取
 //                INFO("GetReadableFrame");
@@ -317,12 +337,14 @@ void AudioPlayer::Loop() {
         }
 
         if(!isnan(current_read_clock)){
-            m_clock->SetClock(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec);
-//            m_clock->SetClockAtTime(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec - (double)BUFFER_MILLI / 1000, callback_time/1000000.0);
+//            float latency = 2.0 * m_buffer_capacity / m_bytes_per_sec;
+            float latency = 1.0 * m_buffer_capacity / m_bytes_per_sec;  //这个延迟是当前buffer被OpenES SL播放的延迟，也就是MAX_BUFFER_COUNTS个buffer的总播放时间
+//            INFO("latency:%f, m_buffer_capacity:%d, m_bytes_per_sec:%d", latency, m_buffer_capacity, m_bytes_per_sec);
+            m_clock->SetClockAtTime(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec, callback_time/1000000.0 + latency);
         }
 
         (*m_player_buffer_queue)->Enqueue(m_player_buffer_queue, buffer_start, m_bytes_per_buffer);
-//        INFO("Enqueue");
+//        INFO("Enqueue:%d", frame_count++);
 
     }
 
@@ -356,4 +378,5 @@ int AudioPlayer::InitSwr(AVFrame* frame) {
 
 void AudioPlayer::SetTimebase(const AVRational &timebase) {
     m_audio_timebase = timebase;
+    INFO("SetTimebase:%d,%d", m_audio_timebase.den, m_audio_timebase.num);
 }
