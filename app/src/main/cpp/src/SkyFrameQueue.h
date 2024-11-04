@@ -10,7 +10,7 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 }
 
-#define MAX_FRAMES 16
+#define MAX_FRAMES 6
 
 enum FrameType{
     FrameNone,

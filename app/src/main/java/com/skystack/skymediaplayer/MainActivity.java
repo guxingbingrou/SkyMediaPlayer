@@ -29,7 +29,7 @@ import android.widget.Toast;
 
 import com.skystack.skymediaplayer.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayerObserver {
+public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'SkyMediaPlayer' library on application startup.
     static {
@@ -44,13 +44,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerObserv
     private final static int RequestCodePermissions = 2;
     static private final String[] PERMISSION = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.INTERNET};
 
-    private MediaPlayer mediaPlayer = null;
-    private SurfaceRenderView surfaceView = null;
-    private int surfaceWidth = 0;
-    private int surfaceHeight = 0;
-    private boolean setUri = false;
-    private boolean setSurface = false;
-    private boolean running = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,46 +54,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerObserv
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        mediaPlayer = MediaPlayer.CreateMediaPlayer(MediaPlayer.MediaPlayerFFmpeg, this);
-
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.CENTER);
-
-        surfaceView = new SurfaceRenderView(this);
-//        surfaceView = binding.surfaceView;
-        surfaceView.setLayoutParams(layoutParams);
-
-        binding.frameLayout.addView(surfaceView);
-
-        SurfaceHolder surfaceHolder = surfaceView.getHolder();
-        surfaceHolder.addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                Log.i(TAG, "surfaceCreated");
-                mediaPlayer.SetSurface(holder.getSurface());
-                setSurface = true;
-                tryStartMediaPlayer();
-            }
-
-            @Override
-            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                Log.i(TAG, "surfaceChanged wxh: " + width + "x" + height);
-                if(mediaPlayer !=null && width * height !=0){
-                    tryStartMediaPlayer();
-                }
-            }
-
-            @Override
-            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                Log.i(TAG, "surfaceDestroyed");
-                mediaPlayer.SetSurface(null);
-                setSurface = false;
-            }
-        });
-
-
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(this, PERMISSION, RequestCodePermissions);
         }
@@ -106,14 +61,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerObserv
 
     }
 
-    void tryStartMediaPlayer(){
-        if(running)
-            return;
-        if(surfaceView !=null && surfaceWidth*surfaceHeight!=0 && setSurface && setUri && mediaPlayer != null){
-            mediaPlayer.Start();
-            running = true;
-        }
-    }
+
 
     private boolean allPermissionsGranted() {
         boolean ret = true;
@@ -172,25 +120,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerObserv
                 String path = Utils.getPath(this, uri);
                 Toast.makeText(this, "filePath: " + path, Toast.LENGTH_LONG).show();
                 if(path != null){
-                    mediaPlayer.SetSource(path);
-                    setUri = true;
-                    tryStartMediaPlayer();
+                    VideoActivity.intentTo(this, path);
                 }
             }
         }
     }
 
-
-    @Override
-    public void OnResolutionChanged(int width, int height) {
-        if(width == surfaceWidth && height == surfaceHeight)
-            return;
-
-        Log.i(TAG, "OnResolutionChanged: " + width + "x" + height);
-        surfaceWidth = width;
-        surfaceHeight = height;
-        if(surfaceView != null){
-            surfaceView.setAspectRatio(surfaceWidth, surfaceHeight);
-        }
-    }
 }

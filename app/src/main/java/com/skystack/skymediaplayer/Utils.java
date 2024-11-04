@@ -72,7 +72,6 @@ public class Utils {
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
 //            Toast.makeText(context, "file ", Toast.LENGTH_LONG).show();
             uri.getPath();
-
         }
         return null;
     }

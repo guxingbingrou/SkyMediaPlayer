@@ -81,12 +81,16 @@ bool DemuxThread::Pause() {
 bool DemuxThread::StopAndRelease() {
     ValidMediaSteams();
     m_running = false;
+
     if(m_audio_decoder)
         m_audio_decoder->Release();
 
     if(m_video_decoder)
         m_video_decoder->Release();
-    return false;
+
+    if(m_thread.joinable())
+        m_thread.join();
+    return true;
 }
 
 void DemuxThread::Loop() {
@@ -100,7 +104,7 @@ void DemuxThread::Loop() {
     while (m_running){
         ret = av_read_frame(m_avformat_context, m_packet);
         if(ret < 0){
-            INFO("decode done");
+            INFO("demux done");
             break;
         }
 

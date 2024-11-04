@@ -33,6 +33,7 @@ void SkyFrameQueue::Pause() {
 }
 
 void SkyFrameQueue::Release() {
+    std::unique_lock<std::mutex> lck(m_mutex);
     m_running = false;
     m_condition_read.notify_one();
     m_condition_write.notify_one();

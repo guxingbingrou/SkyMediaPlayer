@@ -73,9 +73,6 @@ bool FFMediaDecoder::Release() {
         m_codec_context = nullptr;
     }
 
-
-
-
     return true;
 }
 
@@ -147,7 +144,7 @@ void FFMediaDecoder::Decode() {
 //                INFO("GetWriteableFrame");
                 SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
                 if(skyFrame == nullptr || skyFrame->frame == nullptr){
-                    ERROR("GetWriteableFrame failed");
+                    WARNING("GetWriteableFrame failed");
                     break;
                 }
 //                INFO("GetWriteableFrame success");

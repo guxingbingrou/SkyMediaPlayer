@@ -20,6 +20,7 @@ void SkyPacketQueue::Pause() {
 }
 
 void SkyPacketQueue::StopAndRelease() {
+    std::unique_lock<std::mutex> lck(m_mutex);
     m_running = false;
     m_condition_push.notify_one();
     m_condition_pop.notify_one();

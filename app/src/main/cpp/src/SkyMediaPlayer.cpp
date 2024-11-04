@@ -11,13 +11,8 @@ SkyMediaPlayer::SkyMediaPlayer(const std::shared_ptr<MediaPlayerObserver>& obser
 bool SkyMediaPlayer::SetSource(const char *url) {
     m_url = std::string(url);
 
-    if(!m_init.load() && m_native_window && m_demuxer && m_renderer){
-        m_demuxer->Init(this, m_url, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_renderer->Init(m_native_window, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_init.store(true);
-        INFO("Init");
-        ANativeWindow_release(m_native_window);
-    }
+    m_demuxer->Init(this, m_url, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
+    
     return true;
 }
 
@@ -37,18 +32,13 @@ bool SkyMediaPlayer::Init() {
     m_video_frame_queue->Init();
     m_subtitle_queue->Init();
 
-    if(!m_init.load() && m_native_window && !m_url.empty()){
-        m_demuxer->Init(this, m_url, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_renderer->Init(m_native_window, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_init.store(true);
-        INFO("Init");
-        ANativeWindow_release(m_native_window);
-    }
+    m_init.store(true);
+
     return true;
 }
 
 bool SkyMediaPlayer::SetSurface( JNIEnv* env, jobject surface) {
-    INFO("SetSurface: 0x%x", surface);
+    INFO("SetSurface");
     if(surface == nullptr){
         if(m_native_window){
             ANativeWindow_release(m_native_window);
@@ -64,13 +54,9 @@ bool SkyMediaPlayer::SetSurface( JNIEnv* env, jobject surface) {
         return false;
     }
 
-    if(!m_init.load() && !m_url.empty() && m_demuxer && m_renderer){
-        m_demuxer->Init(this, m_url, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_renderer->Init(m_native_window, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-        m_init.store(true);
-        INFO("Init");
-        ANativeWindow_release(m_native_window);
-    }
+    m_renderer->Init(m_native_window, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
+    ANativeWindow_release(m_native_window);
+
     return true;
 }
 
@@ -91,6 +77,8 @@ bool SkyMediaPlayer::Pause() {
 }
 
 bool SkyMediaPlayer::Stop() {
+    m_demuxer->StopAndRelease();
+    m_renderer->Release();
     return false;
 }
 

@@ -57,6 +57,12 @@ bool RenderThread::Stop() {
 }
 
 bool RenderThread::Release() {
+    m_running = false;
+    if(m_thread.joinable())
+        m_thread.join();
+
+
+    m_audio_player->Destroy();
     return false;
 }
 
@@ -100,7 +106,7 @@ void RenderThread::Loop() {
                     lastFrame.frame = av_frame_alloc();
                     av_frame_ref(lastFrame.frame, skyFrame->frame);
                     m_video_queue->FlushReadableFrame();
-                    INFO("lastFrame == nullptr");
+//                    INFO("lastFrame == nullptr");
                     break;
                 }
 
@@ -173,8 +179,10 @@ void RenderThread::Loop() {
             m_video_renderer->RenderPicture(&lastFrame);
         }
 
-
     }
+
+    m_video_renderer->Release();
+
     if(lastFrame.frame){
         av_frame_unref(lastFrame.frame);
         av_frame_free(&lastFrame.frame);

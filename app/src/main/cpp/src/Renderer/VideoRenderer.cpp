@@ -215,7 +215,21 @@ bool VideoRenderer::RenderPicture(const SkyFrame *skyFrame) {
 }
 
 bool VideoRenderer::Release() {
-    return false;
+    if (!MakeCurrent()) {
+        return false;
+    }
+
+    GLUtils::DeleteProgram(m_program);
+
+    glDeleteVertexArrays(1, &m_vao);
+
+    glDeleteBuffers(3, m_vbos);
+
+    glDeleteTextures(1, m_textures);
+
+    eglDestroySurface(m_display, m_surface);
+
+    return true;
 }
 
 bool VideoRenderer::InitEGL() {

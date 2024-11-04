@@ -68,11 +68,17 @@ int AudioPlayer::Stop() {
 }
 
 int AudioPlayer::Destroy() {
+    m_running = false;
+    if(m_thread.joinable())
+        m_thread.join();
+
+    Stop();
     if(m_buffers){
         free(m_buffers);
         m_buffers = 0;
     }
 
+    return 0;
 }
 
 int AudioPlayer::CreateSLEngine() {
@@ -229,7 +235,7 @@ void AudioPlayer::Loop() {
         ERROR("pthread_setschedparam failed");
     }
 
-    int failed_count = 5;
+//    int failed_count = 5;
 
     uint8_t* buffer = nullptr;
     int buffer_index = 0;
@@ -269,19 +275,21 @@ void AudioPlayer::Loop() {
         uint8_t* buffer_start = buffer;
         buffer_index = (buffer_index + 1) % MAX_BUFFER_COUNTS;
 
-        while (total_size){
+        while (total_size && m_running){
             if(out_offset >= out_size){ //out buffer中的数据已全部读取，重新从frame queue中获取
 //                INFO("GetReadableFrame");
                 const SkyFrame* audioFrame = m_audio_queue->GetReadableFrame();
 //                INFO("GetReadableFrame done");
                 if(audioFrame == nullptr || audioFrame->frame == nullptr){
-                    INFO("GetReadableFrame failed");
-                    if(--failed_count)
-                        continue;
-                    else{
-                        ERROR("try get readable frame enough time");
-                        break;
-                    }
+                    WARNING("GetReadableFrame failed");
+                    av_usleep(10 * 1000.0);
+                    break;
+//                    if(--failed_count)
+//                        continue;
+//                    else{
+//                        ERROR("try get readable frame enough time");
+//                        break;
+//                    }
                 }
 
                 AVFrame* frame = audioFrame->frame;
