@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.skystack.skymediaplayer.R;
 import com.skystack.skymediaplayer.Utils;
