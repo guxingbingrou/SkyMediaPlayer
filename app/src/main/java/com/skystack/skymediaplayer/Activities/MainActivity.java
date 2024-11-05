@@ -1,33 +1,25 @@
-package com.skystack.skymediaplayer;
+package com.skystack.skymediaplayer.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.content.ContentUris;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.skystack.skymediaplayer.R;
+import com.skystack.skymediaplayer.Utils;
 import com.skystack.skymediaplayer.databinding.ActivityMainBinding;
+import com.skystack.skymediaplayer.databinding.ToolbarBinding;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(this, PERMISSION, RequestCodePermissions);

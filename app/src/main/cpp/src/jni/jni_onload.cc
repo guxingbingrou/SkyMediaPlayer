@@ -22,7 +22,7 @@ static int registerNativeMethods(JNIEnv* env, const char* className,JNINativeMet
 }
 
 static JNINativeMethod getMethods[] = {
-        {"nativeCreateMediaPlayer","(ILcom/skystack/skymediaplayer/MediaPlayerObserver;)J", reinterpret_cast<void*>(nativeCreateMediaPlayer)},
+        {"nativeCreateMediaPlayer","(ILcom/skystack/skymediaplayer/MediaPlayer/MediaPlayerObserver;)J", reinterpret_cast<void*>(nativeCreateMediaPlayer)},
         {"nativeSetSource","(JLjava/lang/String;)Z", reinterpret_cast<void*>(nativeSetSource)},
         {"nativeStartMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStartMediaPlayer)},
         {"nativeStopMediaPlayer","(J)Z", reinterpret_cast<void*>(nativeStopMediaPlayer)},
@@ -31,7 +31,8 @@ static JNINativeMethod getMethods[] = {
 };
 
 static void loadNativeClass(JNIEnv* env){
-    jclass JavaObserver = env->FindClass("com/skystack/skymediaplayer/MediaPlayerObserver");
+    jclass JavaObserver = env->FindClass(
+            "com/skystack/skymediaplayer/MediaPlayer/MediaPlayerObserver");
     gObserver = static_cast<jclass>(env->NewGlobalRef(JavaObserver));
 }
 
@@ -46,7 +47,7 @@ extern "C" jint JNIEXPORT JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved) {
     JNIEnv* env =  sky::jni::GetEnv();
     assert(env != NULL);
     //注册函数 registerNatives ->registerNativeMethods ->env->RegisterNatives
-    const char* className  = "com/skystack/skymediaplayer/MediaPlayer";
+    const char* className  = "com/skystack/skymediaplayer/MediaPlayer/SkyMediaPlayer";
     if(!registerNativeMethods(env,className,getMethods, sizeof(getMethods)/ sizeof(getMethods[0])))
         return -1;
     //返回jni 的版本

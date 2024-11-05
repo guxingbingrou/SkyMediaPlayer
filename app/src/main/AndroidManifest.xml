@@ -17,14 +17,16 @@
         android:theme="@style/Theme.SkyMediaPlayer"
         tools:targetApi="31">
         <activity
-            android:name=".VideoActivity"
+            android:name=".Activities.VideoActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/Theme.FullScreen"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

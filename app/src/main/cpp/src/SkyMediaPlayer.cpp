@@ -12,7 +12,7 @@ bool SkyMediaPlayer::SetSource(const char *url) {
     m_url = std::string(url);
 
     m_demuxer->Init(this, m_url, m_audio_frame_queue, m_video_frame_queue, m_subtitle_queue);
-    
+
     return true;
 }
 
@@ -32,7 +32,6 @@ bool SkyMediaPlayer::Init() {
     m_video_frame_queue->Init();
     m_subtitle_queue->Init();
 
-    m_init.store(true);
 
     return true;
 }
@@ -62,13 +61,14 @@ bool SkyMediaPlayer::SetSurface( JNIEnv* env, jobject surface) {
 
 bool SkyMediaPlayer::Start() {
     INFO("Start");
-    if(!m_init.load()){
+    if(m_start.load()){
         return false;
     }
 
     INFO("Start Enter");
     m_demuxer->Start();
     m_renderer->Start();
+    m_start.store(true);
     return true;
 }
 
@@ -79,11 +79,14 @@ bool SkyMediaPlayer::Pause() {
 bool SkyMediaPlayer::Stop() {
     m_demuxer->StopAndRelease();
     m_renderer->Release();
-    return false;
+    return true;
 }
 
 bool SkyMediaPlayer::Release() {
-    return false;
+    Stop();
+    m_demuxer.release();
+    m_renderer.release();
+    return true;
 }
 
 void SkyMediaPlayer::OnSizeChanged(int width, int height) {

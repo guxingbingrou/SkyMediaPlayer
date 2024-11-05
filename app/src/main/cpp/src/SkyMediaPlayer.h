@@ -41,7 +41,7 @@ private:
     AVRational m_subtitle_timebase;
 
     std::string m_url;
-    std::atomic<bool> m_init;
+    std::atomic<bool> m_start;
 };
 
 
