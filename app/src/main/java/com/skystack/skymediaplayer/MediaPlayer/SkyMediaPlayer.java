@@ -27,7 +27,6 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
 
     protected static final int MEDIA_SET_VIDEO_SAR = 10001;
 
-    private long mNativeMediaPlayer = 0;
     static public int MediaPlayerFFmpeg = 1;
     static public int MediaPlayerMediaCodec = 2;
 
@@ -35,12 +34,13 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
     private int mVideoHeight = 0;
     private EventHandler mEventHandler;
 
-    static public SkyMediaPlayer CreateMediaPlayer(int type, MediaPlayerObserver listener){
-        return new SkyMediaPlayer(type, listener);
+
+    static public SkyMediaPlayer CreateMediaPlayer(int type){
+        return new SkyMediaPlayer(type);
     }
 
-    private SkyMediaPlayer(int type, MediaPlayerObserver listener){
-        mNativeMediaPlayer = nativeCreateMediaPlayer(type, listener);
+    private SkyMediaPlayer(int type){
+        nativeInit(type);
 
         Looper looper;
         if((looper = Looper.myLooper()) != null){
@@ -51,7 +51,7 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
             mEventHandler = null;
         }
 
-
+        nativeSetup(this);
     }
 
     @Override
@@ -61,33 +61,32 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
             surface = surfaceHolder.getSurface();
         }
 
-        nativeSetSurface(mNativeMediaPlayer, surface);
-
+        nativeSetSurface(surface);
     }
 
     @Override
     public void setDataSource(String path) {
-        nativeSetSource(mNativeMediaPlayer, path);
+        nativeSetSource(path);
     }
 
     @Override
     public void prepareAsync() throws IllegalStateException {
-
+        nativePrepareAsync();
     }
 
     @Override
     public void start() throws IllegalStateException {
-        nativeStartMediaPlayer(mNativeMediaPlayer);
+        nativeStartMediaPlayer();
     }
 
     @Override
     public void stop() throws IllegalStateException {
-        nativeStopMediaPlayer(mNativeMediaPlayer);
+        nativeStopMediaPlayer();
     }
 
     @Override
     public void pause() throws IllegalStateException {
-
+        nativePause();
     }
 
     @Override
@@ -127,7 +126,7 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
 
     @Override
     public void release() {
-        nativeDestroyMediaPlayer(mNativeMediaPlayer);
+        nativeDestroyMediaPlayer();
         resetListeners();
     }
 
@@ -161,7 +160,7 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
         @Override
         public void handleMessage(@NonNull Message msg) {
             SkyMediaPlayer mediaPlayer = mWeakPlayer.get();
-            if(mediaPlayer == null || mediaPlayer.mNativeMediaPlayer == 0){
+            if(mediaPlayer == null){
                 Log.w(TAG, "mediaPlayer is null" );
                 return;
             }
@@ -217,25 +216,23 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
         }
     }
 
-    private static void postEventFromNative(Object weakThiz, int what, int arg1, int arg2, Object obj){
-        if(weakThiz == null)
-            return;
-
-        SkyMediaPlayer mediaPlayer = (SkyMediaPlayer) ((WeakReference)weakThiz).get();
-        if(mediaPlayer == null)
-            return;
-
-        if(mediaPlayer.mEventHandler != null){
-            Message message = mediaPlayer.mEventHandler.obtainMessage(what, arg1, arg2, obj);
-            mediaPlayer.mEventHandler.sendMessage(message);
+    private void postEventFromNative(int what, int arg1, int arg2, Object obj){
+        Log.i(TAG, "postEventFromNative: " + what);
+        if(mEventHandler != null){
+            Message message =mEventHandler.obtainMessage(what, arg1, arg2, obj);
+            mEventHandler.sendMessage(message);
         }
     }
 
 
-    private native long nativeCreateMediaPlayer(int type, MediaPlayerObserver listener);
-    private native boolean nativeSetSource(long nativeMediaPlayer, String path);
-    private native boolean nativeStartMediaPlayer(long nativeMediaPlayer);
-    private native boolean nativeStopMediaPlayer(long nativeMediaPlayer);
-    private native boolean nativeDestroyMediaPlayer(long nativeMediaPlayer);
-    private native void nativeSetSurface(long nativeMediaPlayer, Surface surface);
+    private native void nativeInit(int type);
+    private native void nativeSetup(Object obj);
+    private native boolean nativeSetSource(String path);
+    private native void nativeSetSurface(Surface surface);
+    private native void nativePrepareAsync();
+    private native boolean nativeStartMediaPlayer();
+    private native boolean nativePause();
+    private native boolean nativeStopMediaPlayer();
+    private native boolean nativeDestroyMediaPlayer();
+
 }

@@ -77,6 +77,7 @@ int AudioPlayer::Destroy() {
         free(m_buffers);
         m_buffers = 0;
     }
+    INFO("Destroy");
 
     return 0;
 }

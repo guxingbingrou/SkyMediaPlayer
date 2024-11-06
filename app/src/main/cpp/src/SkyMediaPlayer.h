@@ -11,11 +11,13 @@
 #include "Renderer/RenderThread.h"
 #include "SkyFrameQueue.h"
 #include "MediaPLayerObserver.h"
+#include "MessageQueue.h"
 
 class SkyMediaPlayer {
 public:
-    SkyMediaPlayer(const std::shared_ptr<MediaPlayerObserver>& observer);
+    SkyMediaPlayer();
     bool Init();
+    bool PrepareAsync(const std::shared_ptr<MessageQueue>& messageQueue);
     bool SetSource(const char* url);
     bool SetSurface( JNIEnv* env, jobject surface);
     bool Start();
@@ -28,7 +30,6 @@ public:
     void OnTimeBaseChanged(const AVMediaType& mediaType, const AVRational& timebase);
 
 private:
-    std::shared_ptr<MediaPlayerObserver> m_observer;
     std::unique_ptr<DemuxThread> m_demuxer;
     std::unique_ptr<RenderThread> m_renderer;
     ANativeWindow* m_native_window = nullptr;
@@ -42,6 +43,10 @@ private:
 
     std::string m_url;
     std::atomic<bool> m_start;
+
+    std::shared_ptr<MessageQueue> m_message_queue;
+    int m_width = 0;
+    int m_height = 0;
 };
 
 

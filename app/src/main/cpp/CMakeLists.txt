@@ -91,6 +91,8 @@ add_library(SkyMediaEngine
         src/SkyFrameQueue.cpp
         src/SkyMediaPlayer.cpp
         src/Renderer/SkyClock.cpp
+        src/MessageQueue.cpp
+
         )
 
 target_link_libraries(SkyMediaEngine
@@ -114,7 +116,7 @@ add_library( # Sets the name of the library.
         src/jni/jni_onload.cc
         src/jni/jvm.cc
         src/jni/native-lib.cpp
-        src/jni/NativeObserver.cpp)
+        src/jni/MediaPlayerProxy.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

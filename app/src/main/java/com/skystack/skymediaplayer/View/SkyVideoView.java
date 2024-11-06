@@ -19,12 +19,11 @@ import androidx.annotation.Nullable;
 
 import com.skystack.skymediaplayer.MediaPlayer.IMediaPlayer;
 import com.skystack.skymediaplayer.MediaPlayer.SkyMediaPlayer;
-import com.skystack.skymediaplayer.MediaPlayer.MediaPlayerObserver;
 
 import java.io.IOException;
 
 //模仿 VideoView
-public class SkyVideoView extends FrameLayout implements MediaController.MediaPlayerControl, MediaPlayerObserver {
+public class SkyVideoView extends FrameLayout implements MediaController.MediaPlayerControl{
     private final static String TAG = SkyVideoView.class.getName();
     // all possible internal states
     private static final int STATE_ERROR = -1;
@@ -111,6 +110,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
                 Log.e(TAG, "onSurfaceChanged: unmatched render");
                 return;
             }
+            Log.i(TAG, "onSurfaceChanged: " + width + " x " + height);
             mSurfaceWidth = width;
             mSurfaceHeight = height;
 
@@ -189,7 +189,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
         release(false);
 
         try {
-            mMediaPlayer = SkyMediaPlayer.CreateMediaPlayer(SkyMediaPlayer.MediaPlayerFFmpeg, this);
+            mMediaPlayer = SkyMediaPlayer.CreateMediaPlayer(SkyMediaPlayer.MediaPlayerFFmpeg);
 
             mMediaPlayer.setOnPreparedListener(mPreparedListener);
             mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
@@ -205,7 +205,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
             bindSurfaceHolder(mMediaPlayer, mSurfaceHolder);
             mMediaPlayer.setScreenOnWhilePlaying(true);
             mMediaPlayer.prepareAsync();
-            mCurrentState = STATE_PLAYING;
+            mCurrentState = STATE_PREPARING;
             attachMediaController();
         }catch (IOException exception){
             Log.e(TAG, "unable to open url: " + mVideoPath);
@@ -243,6 +243,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     IMediaPlayer.OnVideoSizeChangedListener mSizeChangedListener = new IMediaPlayer.OnVideoSizeChangedListener() {
         @Override
         public void onVideoSizeChanged(IMediaPlayer mp, int width, int height) {
+            Log.i(TAG, "onVideoSizeChanged: " + width + " x " + height);
             if(width == mSurfaceWidth && height == mSurfaceHeight)
                 return;
 
@@ -258,6 +259,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(IMediaPlayer mp) {
+            Log.i(TAG, "onPrepared");
             mCurrentState = STATE_PREPARED;
 
             if(mOnPreparedListener != null){
@@ -371,9 +373,8 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     };
 
 
-
-
     void release(boolean cleartargetstate){
+        Log.i(TAG, "release");
         if(mMediaPlayer != null){
             mMediaPlayer.reset();
             mMediaPlayer.release();
@@ -414,6 +415,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     //implements MediaController.MediaPlayerControl
     @Override
     public void start() {
+        Log.i(TAG, "start");
         if(isInPlaybackState()){
             mMediaPlayer.start();
             mCurrentState = STATE_PLAYING;
@@ -498,16 +500,4 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
         return 0;
     }
 
-    @Override
-    public void OnResolutionChanged(int width, int height) {
-        if(width == mSurfaceWidth && height == mSurfaceHeight)
-            return;
-
-        Log.i(TAG, "OnResolutionChanged: " + width + "x" + height);
-        mVideoWidth = width;
-        mVideoHeight = height;
-        if(mRenderView != null){
-            mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
-        }
-    }
 }

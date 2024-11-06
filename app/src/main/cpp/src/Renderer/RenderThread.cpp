@@ -61,8 +61,9 @@ bool RenderThread::Release() {
     if(m_thread.joinable())
         m_thread.join();
 
-
     m_audio_player->Destroy();
+
+    INFO("Release");
     return false;
 }
 

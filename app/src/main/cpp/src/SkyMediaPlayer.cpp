@@ -5,8 +5,8 @@
 #include "SkyMediaPlayer.h"
 #include "AndroidLog.h"
 
-SkyMediaPlayer::SkyMediaPlayer(const std::shared_ptr<MediaPlayerObserver>& observer){
-    m_observer = observer;
+SkyMediaPlayer::SkyMediaPlayer(){
+
 }
 bool SkyMediaPlayer::SetSource(const char *url) {
     m_url = std::string(url);
@@ -91,8 +91,11 @@ bool SkyMediaPlayer::Release() {
 
 void SkyMediaPlayer::OnSizeChanged(int width, int height) {
     INFO("OnSizeChanged: %dx%d", width, height);
-    if(m_observer)
-        m_observer->OnSizeChanged(width, height);
+    m_width = width;
+    m_height = height;
+    if(m_message_queue){
+        m_message_queue->PushMessage(new Message(MEDIA_SET_VIDEO_SIZE, width, height));
+    }
 }
 
 void SkyMediaPlayer::OnAudioParamsChanged(int sampleRate, int channels) {
@@ -109,4 +112,15 @@ void SkyMediaPlayer::OnTimeBaseChanged(const AVMediaType& mediaType, const AVRat
     }
     if(m_renderer)
         m_renderer->SetTimebase(mediaType, timebase);
+}
+
+bool SkyMediaPlayer::PrepareAsync(const std::shared_ptr<MessageQueue> &messageQueue) {
+    m_message_queue = messageQueue;
+
+    if(m_message_queue){
+        m_message_queue->PushMessage(new Message(MEDIA_SET_VIDEO_SIZE, m_width, m_height));
+        m_message_queue->PushMessage(new Message(MEDIA_PREPARED));
+    }
+
+    return true;
 }

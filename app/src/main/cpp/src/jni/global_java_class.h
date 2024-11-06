@@ -8,7 +8,7 @@
 #include <jni.h>
 
 
-extern jclass gObserver;
+extern jclass gJavaMediaPlayer;
 
 
 
