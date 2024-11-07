@@ -50,5 +50,11 @@ jboolean nativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1){
     return ret;
 }
 
+jint nativeGetDuration(JNIEnv* env, jobject jobject1){
+    return MediaPlayerProxy::GetProxy()->GetDuration();
+}
 
+jint nativeGetCurrentPosition(JNIEnv* env, jobject jobject1){
+    return MediaPlayerProxy::GetProxy()->GetCurrentPosition();
+}
 

@@ -46,7 +46,7 @@ public class VideoActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         ActionBar actionBar = getSupportActionBar();
-//        actionBar.hide();
+        actionBar.hide();
 
         mMediaController = new MediaController(this);
         mVideoView.setMediaController(mMediaController);

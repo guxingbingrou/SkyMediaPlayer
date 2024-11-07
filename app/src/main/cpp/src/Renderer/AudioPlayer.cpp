@@ -142,6 +142,8 @@ int AudioPlayer::CreateAudioPlayer() {
     m_buffer_capacity = m_bytes_per_buffer * MAX_BUFFER_COUNTS;
     m_buffers = static_cast<uint8_t *>(malloc(m_buffer_capacity));
 
+    m_buffers_latency = 1.0 * m_buffer_capacity / m_bytes_per_sec;  //这个延迟是当前buffer被OpenES SL播放的延迟，也就是MAX_BUFFER_COUNTS个buffer的总播放时间
+
     SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, MAX_BUFFER_COUNTS};
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
@@ -347,9 +349,9 @@ void AudioPlayer::Loop() {
 
         if(!isnan(current_read_clock)){
 //            float latency = 2.0 * m_buffer_capacity / m_bytes_per_sec;
-            float latency = 1.0 * m_buffer_capacity / m_bytes_per_sec;  //这个延迟是当前buffer被OpenES SL播放的延迟，也就是MAX_BUFFER_COUNTS个buffer的总播放时间
+//            float latency = 1.0 * m_buffer_capacity / m_bytes_per_sec;  //这个延迟是当前buffer被OpenES SL播放的延迟，也就是MAX_BUFFER_COUNTS个buffer的总播放时间
 //            INFO("latency:%f, m_buffer_capacity:%d, m_bytes_per_sec:%d", latency, m_buffer_capacity, m_bytes_per_sec);
-            m_clock->SetClockAtTime(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec, callback_time/1000000.0 + latency);
+            m_clock->SetClockAtTime(current_read_clock - (double)(out_size - out_offset) / m_bytes_per_sec, callback_time/1000000.0 + m_buffers_latency);
         }
 
         (*m_player_buffer_queue)->Enqueue(m_player_buffer_queue, buffer_start, m_bytes_per_buffer);
@@ -388,4 +390,11 @@ int AudioPlayer::InitSwr(AVFrame* frame) {
 void AudioPlayer::SetTimebase(const AVRational &timebase) {
     m_audio_timebase = timebase;
     INFO("SetTimebase:%d,%d", m_audio_timebase.den, m_audio_timebase.num);
+}
+
+int AudioPlayer::GetCurrentTime() {
+    if(m_clock){
+        return (m_clock->GetClock() + m_buffers_latency) * 1000000;
+    }
+    return 0;
 }

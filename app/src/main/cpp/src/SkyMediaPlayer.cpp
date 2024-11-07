@@ -124,3 +124,15 @@ bool SkyMediaPlayer::PrepareAsync(const std::shared_ptr<MessageQueue> &messageQu
 
     return true;
 }
+
+int SkyMediaPlayer::GetDuration() {
+    if(m_demuxer)
+        return m_demuxer->GetDuration();
+    return 0;
+}
+
+int SkyMediaPlayer::GetCurrentPosition() {
+    if(m_renderer && m_demuxer)
+        return m_renderer->GetCurrentTime() - m_demuxer->GetStartTime();
+    return 0;
+}

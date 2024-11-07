@@ -25,6 +25,9 @@ public:
     bool Stop();
     bool Release();
 
+    int GetDuration();
+    int GetCurrentPosition();
+
     ~MediaPlayerProxy();
 private:
     MediaPlayerProxy();

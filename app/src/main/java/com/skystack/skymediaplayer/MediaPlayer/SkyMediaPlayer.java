@@ -116,12 +116,12 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
 
     @Override
     public int getCurrentPosition() {
-        return 0;
+        return nativeGetCurrentPosition();
     }
 
     @Override
     public int getDuration() {
-        return 0;
+        return nativeGetDuration();
     }
 
     @Override
@@ -234,5 +234,8 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
     private native boolean nativePause();
     private native boolean nativeStopMediaPlayer();
     private native boolean nativeDestroyMediaPlayer();
+
+    private native int nativeGetDuration();
+    private native int nativeGetCurrentPosition();
 
 }

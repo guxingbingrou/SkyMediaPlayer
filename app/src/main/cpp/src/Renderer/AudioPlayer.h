@@ -25,6 +25,8 @@ public:
     int Destroy();
     void SetTimebase(const AVRational& timebase);
 
+    int GetCurrentTime();
+
 private:
     int CreateSLEngine();
     int CreateOutputMix();
@@ -60,6 +62,8 @@ private:
     int m_bytes_per_sec = 0;
     int m_channels = 2;
     int m_samplerate = SL_SAMPLINGRATE_44_1;
+
+    float m_buffers_latency = 0.0;
 
     AVSampleFormat m_format = AV_SAMPLE_FMT_S16;
 

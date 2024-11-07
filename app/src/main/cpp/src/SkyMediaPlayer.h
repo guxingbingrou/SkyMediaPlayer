@@ -25,6 +25,9 @@ public:
     bool Stop();
     bool Release();
 
+    int GetDuration();
+    int GetCurrentPosition();
+
     void OnSizeChanged(int width, int height);
     void OnAudioParamsChanged(int sampleRate, int channels);
     void OnTimeBaseChanged(const AVMediaType& mediaType, const AVRational& timebase);

@@ -190,3 +190,12 @@ void RenderThread::Loop() {
     }
 
 }
+
+int RenderThread::GetCurrentTime() {
+    if(m_audio_player)
+        return m_audio_player->GetCurrentTime(); //us
+    else
+        return m_video_clock->GetClock() * 1000000;
+
+    return 0;
+}

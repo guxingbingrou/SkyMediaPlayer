@@ -31,6 +31,9 @@ public:
     bool Pause();
     bool StopAndRelease();
 
+    int GetDuration();
+    int GetStartTime();
+
 private:
     void Loop();
     void ValidMediaSteams();

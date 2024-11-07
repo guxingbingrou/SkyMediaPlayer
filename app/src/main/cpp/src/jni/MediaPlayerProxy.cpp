@@ -136,3 +136,21 @@ MediaPlayerProxy::~MediaPlayerProxy() {
 MediaPlayerProxy::MediaPlayerProxy() {
 
 }
+
+int MediaPlayerProxy::GetDuration() {
+    if(m_player){
+        return m_player->GetDuration() / 1000;   //ffmpeg单位us, Android层单位是ms
+    }
+    return 0;
+}
+
+int MediaPlayerProxy::GetCurrentPosition() {
+    if(m_player){
+        int position = m_player->GetCurrentPosition() / 1000;
+        if(position < 0) position = 0;
+        if(position > GetDuration()) position = GetDuration();
+//        INFO("position: %d, duration:%d", position, GetDuration());
+        return position;  //ffmpeg单位us, Android层单位是ms
+    }
+    return 0;
+}

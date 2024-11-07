@@ -130,3 +130,15 @@ void DemuxThread::ValidMediaSteams() {
         exit(-1);
     }
 }
+
+int DemuxThread::GetDuration() {
+    if(m_avformat_context)
+        return m_avformat_context->duration;
+    return 0;
+}
+
+int DemuxThread::GetStartTime() {
+    if(m_avformat_context)
+        return m_avformat_context->start_time;
+    return 0;
+}

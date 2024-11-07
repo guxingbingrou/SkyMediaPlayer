@@ -33,6 +33,8 @@ static JNINativeMethod getMethods[] = {
         {"nativePause","()Z", reinterpret_cast<void*>(nativePause)},
         {"nativeStopMediaPlayer","()Z", reinterpret_cast<void*>(nativeStopMediaPlayer)},
         {"nativeDestroyMediaPlayer","()Z", reinterpret_cast<void*>(nativeDestroyMediaPlayer)},
+        {"nativeGetDuration","()I", reinterpret_cast<void*>(nativeGetDuration)},
+        {"nativeGetCurrentPosition","()I", reinterpret_cast<void*>(nativeGetCurrentPosition)},
 
 };
 
