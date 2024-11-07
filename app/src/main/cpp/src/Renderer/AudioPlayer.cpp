@@ -36,43 +36,62 @@ int AudioPlayer::Init(const std::shared_ptr<SkyFrameQueue> &audioFrameQueue, con
 }
 
 int AudioPlayer::Start() {
+    if(m_running){
+        m_paused = false;
+        m_condition.notify_one();
+        return true;
+    }
+
     if(!m_player_play)
         return -1;
-    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PLAYING);
-
-    if(m_running)
-        return 0;
 
     m_running = true;
-
+    m_paused = false;
     m_thread = std::thread(&AudioPlayer::Loop, this);
 
     return 0;
 }
 
 int AudioPlayer::Pause() {
+    if(!m_running) return -1;
     if(!m_player_play)
         return -1;
-    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PAUSED);
+    m_paused = true;
 
     return 0;
 }
 
 int AudioPlayer::Stop() {
+    m_running = false;
+    m_condition.notify_all();
+
+    if(m_thread.joinable())
+        m_thread.join();
+
     if(!m_player_play)
         return -1;
-    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_STOPPED);
 
+    (*m_player_buffer_queue)->Clear(m_player_buffer_queue);
 
     return 0;
 }
 
 int AudioPlayer::Destroy() {
-    m_running = false;
-    if(m_thread.joinable())
-        m_thread.join();
-
     Stop();
+
+    m_player_buffer_queue = nullptr;
+    m_player_volume = nullptr;
+    m_player_play = nullptr;
+    (*m_player)->Destroy(m_player);
+    m_player = nullptr;
+
+    (*m_output_mix)->Destroy(m_output_mix);
+    m_output_mix = nullptr;
+
+    m_engine_interface = nullptr;
+    (*m_engine)->Destroy(m_engine);
+    m_engine = nullptr;
+
     if(m_buffers){
         free(m_buffers);
         m_buffers = 0;
@@ -252,7 +271,7 @@ void AudioPlayer::Loop() {
 
     int64_t callback_time;
 
-//    int frame_count = 0;
+    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PLAYING);
 
     while (m_running) {
         SLAndroidSimpleBufferQueueState slState = {0};
@@ -264,8 +283,20 @@ void AudioPlayer::Loop() {
             if (slRet != SL_RESULT_SUCCESS) {
                 ERROR("slBufferQueueItf->GetState() failed\n");
             }
-            if(slState.count >= MAX_BUFFER_COUNTS){
+            while (m_running && (slState.count >= MAX_BUFFER_COUNTS || m_paused)){
+                if(!m_paused)
+                    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PLAYING);
+
                 m_condition.wait(lck);
+
+                //更新slState.count
+                SLresult slRet = (*m_player_buffer_queue)->GetState(m_player_buffer_queue, &slState);
+                if (slRet != SL_RESULT_SUCCESS) {
+                    ERROR("slBufferQueueItf->GetState() failed\n");
+                }
+
+                if(m_paused)
+                    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_PAUSED);
             }
         }
 
@@ -358,6 +389,8 @@ void AudioPlayer::Loop() {
 //        INFO("Enqueue:%d", frame_count++);
 
     }
+
+    (*m_player_play)->SetPlayState(m_player_play, SL_PLAYSTATE_STOPPED);
 
     if(out_buffer){
         av_freep(&out_buffer);

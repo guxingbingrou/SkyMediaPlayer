@@ -61,6 +61,9 @@ bool DemuxThread::Start() {
     INFO("Start enter");
     ValidMediaSteams();
 
+    if(m_running)
+        return true;
+
     m_running = true;
     if(m_audio_decoder)
         m_audio_decoder->Start();

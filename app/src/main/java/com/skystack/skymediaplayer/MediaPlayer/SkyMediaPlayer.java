@@ -74,8 +74,10 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
         nativePrepareAsync();
     }
 
+    private  boolean m_is_playing = true;
     @Override
     public void start() throws IllegalStateException {
+        m_is_playing = true;
         nativeStartMediaPlayer();
     }
 
@@ -86,6 +88,8 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
 
     @Override
     public void pause() throws IllegalStateException {
+        m_is_playing = false;
+        Log.i(TAG, "pause");
         nativePause();
     }
 
@@ -104,9 +108,10 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
         return mVideoHeight;
     }
 
+
     @Override
     public boolean isPlaying() {
-        return true;
+        return m_is_playing;
     }
 
     @Override

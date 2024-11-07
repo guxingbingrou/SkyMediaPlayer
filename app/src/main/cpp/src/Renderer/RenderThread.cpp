@@ -43,13 +43,21 @@ void RenderThread::SetTimebase(const AVMediaType& mediaType, const AVRational& t
 
 bool RenderThread::Start() {
     m_audio_player->Start();
+    if(m_running){
+        m_paused = false;
+        return true;
+    }
+
     m_running = true;
     m_thread = std::thread(&RenderThread::Loop, this);
     return false;
 }
 
 bool RenderThread::Pause() {
-    return false;
+    if(!m_running) return false;
+    m_audio_player->Pause();
+    m_paused = true;
+    return true;
 }
 
 bool RenderThread::Stop() {
@@ -111,6 +119,8 @@ void RenderThread::Loop() {
                     break;
                 }
 
+                if(m_paused)
+                    break;
 
                 AVFrame* avFrame = skyFrame->frame;
                 AVFrame* lastAvFrame = lastFrame.frame;

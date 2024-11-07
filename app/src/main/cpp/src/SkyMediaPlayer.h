@@ -45,7 +45,7 @@ private:
     AVRational m_subtitle_timebase;
 
     std::string m_url;
-    std::atomic<bool> m_start;
+//    std::atomic<bool> m_start;
 
     std::shared_ptr<MessageQueue> m_message_queue;
     int m_width = 0;

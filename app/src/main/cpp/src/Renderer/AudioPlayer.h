@@ -48,6 +48,7 @@ private:
 
     std::thread m_thread;
     bool m_running = false;
+    bool m_paused = false;
     std::mutex m_mutex;
     std::condition_variable m_condition;
     std::shared_ptr<SkyFrameQueue> m_audio_queue;

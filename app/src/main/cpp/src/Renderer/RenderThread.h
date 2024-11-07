@@ -49,8 +49,7 @@ private:
     std::shared_ptr<SkyClock> m_audio_clock;
     std::shared_ptr<SkyClock> m_video_clock;
     bool m_running = false;
-
-    int m_current_position = 0;
+    bool m_paused = false;
 
     static constexpr double REFRESH_RATE = 0.01;  //10ms
     static constexpr double MAX_DURATION = 10;  //10s

@@ -61,18 +61,19 @@ bool SkyMediaPlayer::SetSurface( JNIEnv* env, jobject surface) {
 
 bool SkyMediaPlayer::Start() {
     INFO("Start");
-    if(m_start.load()){
-        return false;
-    }
+//    if(m_start.load()){
+//        return false;
+//    }
 
-    INFO("Start Enter");
     m_demuxer->Start();
     m_renderer->Start();
-    m_start.store(true);
+//    m_start.store(true);
     return true;
 }
 
 bool SkyMediaPlayer::Pause() {
+    if(m_renderer)
+        return m_renderer->Pause();
     return false;
 }
 
