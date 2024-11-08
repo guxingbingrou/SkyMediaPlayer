@@ -204,8 +204,8 @@ void RenderThread::Loop() {
 int RenderThread::GetCurrentTime() {
     if(m_audio_player)
         return m_audio_player->GetCurrentTime(); //us
-    else
+    else if(m_video_clock)
         return m_video_clock->GetClock() * 1000000;
-
-    return 0;
+    else
+        return 0;
 }

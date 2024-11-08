@@ -84,6 +84,7 @@ bool DemuxThread::Pause() {
 bool DemuxThread::StopAndRelease() {
     ValidMediaSteams();
     m_running = false;
+    m_seek_condition.notify_all();
 
     if(m_audio_decoder)
         m_audio_decoder->Release();
@@ -105,10 +106,36 @@ void DemuxThread::Loop() {
     }
     int ret = 0;
     while (m_running){
+        if(m_seek_quest){
+            if(m_audio_packet_queue){
+                m_audio_packet_queue->Clear();
+                m_audio_packet_queue->FlushPacket();
+            }
+
+            if(m_video_packet_queue){
+                m_video_packet_queue->Clear();
+                m_video_packet_queue->FlushPacket();
+            }
+
+
+            if(avformat_seek_file(m_avformat_context, -1, INT64_MIN, m_seek_pos, INT64_MAX, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME) < 0){
+                ERROR("seek failed, pos:%d ", m_seek_pos);
+            }
+
+            m_seek_quest = false;
+        }
+
         ret = av_read_frame(m_avformat_context, m_packet);
         if(ret < 0){
-            INFO("demux done");
-            break;
+            if(ret == AVERROR_EOF){
+                INFO("demux done");
+                std::unique_lock<std::mutex> lck(m_mutex);
+                m_seek_condition.wait(lck);
+                continue;
+            }else{
+                ERROR("demux error");
+                break;
+            }
         }
 
         if(m_packet->stream_index == m_audio_stream_index){
@@ -144,4 +171,12 @@ int DemuxThread::GetStartTime() {
     if(m_avformat_context)
         return m_avformat_context->start_time;
     return 0;
+}
+
+bool DemuxThread::SeekTo(int pos) {
+    std::unique_lock<std::mutex> lck(m_mutex);
+    m_seek_quest = true;
+    m_seek_pos = m_avformat_context->start_time + pos;
+    m_seek_condition.notify_one();
+    return true;
 }

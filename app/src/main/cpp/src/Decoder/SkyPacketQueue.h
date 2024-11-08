@@ -11,6 +11,7 @@
 extern "C" {
 #include "libavcodec/avcodec.h"
 }
+
 class SkyPacketQueue {
 public:
     SkyPacketQueue() = default;
@@ -18,18 +19,28 @@ public:
 
 
     void Start();
-    void Pause();
     void StopAndRelease();
     bool QueuePacket(AVPacket* packet);
-    bool DequeuePacket(AVPacket* packet);
+    bool DequeuePacket(AVPacket* packet, int* serial);
+
+    void Clear();
+    void FlushPacket();
+    bool IsFlushPacket(AVPacket* packet);
+    inline int GetSerial(){return m_serial;}
 
 private:
-    static constexpr int MAX_PACKETS = 20;
+    struct SkyPacket{
+        int serial = 0;
+        AVPacket packet;
+    };
+
     std::mutex m_mutex;
-    std::condition_variable m_condition_push;
     std::condition_variable m_condition_pop;
-    std::queue<AVPacket> m_queue;
+    std::queue<SkyPacket> m_queue;
     bool m_running = false;
+
+    int m_serial = 0;
+    AVPacket m_flush_pkt;
 };
 
 

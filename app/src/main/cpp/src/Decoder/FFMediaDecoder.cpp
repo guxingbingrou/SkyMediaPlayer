@@ -51,8 +51,7 @@ bool FFMediaDecoder::Start() {
 
 bool FFMediaDecoder::Stop() {
     m_running = false;
-    m_packet_queue->Pause();
-    m_frame_queue->Pause();
+    m_frame_queue->Stop();
 
     if(m_thread.joinable()){
         m_thread.join();
@@ -89,80 +88,31 @@ void FFMediaDecoder::Decode() {
         exit(-1);
     }
 
-    int ret = 0;
+    int serial = 0;
 
     while (m_running){
 //        INFO("DequeuePacket");
-        if(!m_packet_queue->DequeuePacket(packet)){
-            if(!m_running){
-                INFO("Decode Stopped");
-                break;
-            }else{
-                ERROR("DequeuePacket failed !!!");
-                continue;
-            }
-        }
-        ret = avcodec_send_packet(m_codec_context, packet);
-        if(ret < 0){
-            ERROR("failed to submitting a packet for decoding (%s)", av_err2str(ret));
-            return ;
-        }
-
-        while (ret >=0){
-
-            ret = avcodec_receive_frame(m_codec_context, avFrame);
-            if(ret < 0) {
-                if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+        do {
+            if(!m_packet_queue->DequeuePacket(packet, &serial)){
+                if(!m_running){
+                    INFO("Decode Stopped");
                     break;
+                }else{
+                    ERROR("DequeuePacket failed !!!");
+                    continue;
                 }
-
-                ERROR("error during decoding (%s)", av_err2str(ret));
-                return;
             }
+        } while (serial != m_packet_queue->GetSerial());
 
-            if(m_codec_context->codec->type == AVMEDIA_TYPE_VIDEO){
-//                INFO("GetWriteableFrame");
-                SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
-//                INFO("GetWriteableFrame done");
-                if(skyFrame == nullptr || skyFrame->frame == nullptr){
-                    ERROR("GetWriteableFrame failed");
-                    break;
-                }
-
-                if(m_video_width != avFrame->width || m_video_height != avFrame->height){
-
-                    m_video_width = avFrame->width;
-                    m_video_height = avFrame->height;
-                    m_media_player->OnSizeChanged(m_video_width, m_video_height);
-
-                }
-
-//                INFO("GetWriteableFrame success");
-                av_frame_ref(skyFrame->frame, avFrame);
-                m_frame_queue->FlushWriteableFrame();
-            }else if(m_codec_context->codec->type == AVMEDIA_TYPE_AUDIO){
-//                INFO("GetWriteableFrame");
-                SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
-                if(skyFrame == nullptr || skyFrame->frame == nullptr){
-                    WARNING("GetWriteableFrame failed");
-                    break;
-                }
-//                INFO("GetWriteableFrame success");
-                av_frame_ref(skyFrame->frame, avFrame);
-                m_frame_queue->FlushWriteableFrame();
-            }
-
-            av_frame_unref(avFrame);
-
+        if(m_packet_queue->IsFlushPacket(packet)){
+            avcodec_flush_buffers(m_codec_context);
+        }else{
+            DecodeOnPacket(packet, avFrame);
         }
 
-
-//        INFO("av_packet_unref");
         av_packet_unref(packet);
 
     }
-
-
 
     if(packet){
         av_packet_free(&packet);
@@ -174,4 +124,60 @@ void FFMediaDecoder::Decode() {
         avFrame = nullptr;
     }
 
+}
+
+void FFMediaDecoder::DecodeOnPacket(AVPacket *packet, AVFrame* avFrame) {
+    int ret = avcodec_send_packet(m_codec_context, packet);
+    if(ret < 0){
+        ERROR("failed to submitting a packet for decoding (%s)", av_err2str(ret));
+        return ;
+    }
+
+    while (ret >=0){
+
+        ret = avcodec_receive_frame(m_codec_context, avFrame);
+        if(ret < 0) {
+            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+                break;
+            }
+
+            ERROR("error during decoding (%s)", av_err2str(ret));
+            return;
+        }
+
+        if(m_codec_context->codec->type == AVMEDIA_TYPE_VIDEO){
+//                INFO("GetWriteableFrame");
+            SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
+//                INFO("GetWriteableFrame done");
+            if(skyFrame == nullptr || skyFrame->frame == nullptr){
+                ERROR("GetWriteableFrame failed");
+                break;
+            }
+
+            if(m_video_width != avFrame->width || m_video_height != avFrame->height){
+
+                m_video_width = avFrame->width;
+                m_video_height = avFrame->height;
+                m_media_player->OnSizeChanged(m_video_width, m_video_height);
+
+            }
+
+//                INFO("GetWriteableFrame success");
+            av_frame_ref(skyFrame->frame, avFrame);
+            m_frame_queue->FlushWriteableFrame();
+        }else if(m_codec_context->codec->type == AVMEDIA_TYPE_AUDIO){
+//                INFO("GetWriteableFrame");
+            SkyFrame* skyFrame = m_frame_queue->GetWriteableFrame();
+            if(skyFrame == nullptr || skyFrame->frame == nullptr){
+                WARNING("GetWriteableFrame failed");
+                break;
+            }
+//                INFO("GetWriteableFrame success");
+            av_frame_ref(skyFrame->frame, avFrame);
+            m_frame_queue->FlushWriteableFrame();
+        }
+
+        av_frame_unref(avFrame);
+
+    }
 }

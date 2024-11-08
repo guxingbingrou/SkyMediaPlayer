@@ -154,3 +154,10 @@ int MediaPlayerProxy::GetCurrentPosition() {
     }
     return 0;
 }
+
+bool MediaPlayerProxy::SeekTo(int msec) {
+    if(m_player)
+        return m_player->SeekTo(msec * 1000);
+
+    return false;
+}

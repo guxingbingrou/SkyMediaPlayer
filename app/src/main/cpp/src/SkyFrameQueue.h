@@ -30,7 +30,7 @@ class SkyFrameQueue{
 public:
     void Init();
     void Start();
-    void Pause();
+    void Stop();
     void Release();
     bool Empty(); //可读的大小为空
 
@@ -48,6 +48,8 @@ private:
     uint32_t m_write_pos = 0;
     uint32_t m_live_size = MAX_FRAMES;  //可写的大小
     bool m_running = false;
+
+    int serial = 0;
 
 };
 

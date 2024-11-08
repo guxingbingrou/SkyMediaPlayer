@@ -22,6 +22,7 @@ public:
     bool SetSurface( JNIEnv* env, jobject surface);
     bool Start();
     bool Pause();
+    bool SeekTo(int pos);
     bool Stop();
     bool Release();
 

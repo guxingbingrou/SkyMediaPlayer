@@ -58,3 +58,7 @@ jint nativeGetCurrentPosition(JNIEnv* env, jobject jobject1){
     return MediaPlayerProxy::GetProxy()->GetCurrentPosition();
 }
 
+void nativeSeekTo(JNIEnv* env, jobject jobject1, jint msec){
+    MediaPlayerProxy::GetProxy()->SeekTo(msec);
+}
+

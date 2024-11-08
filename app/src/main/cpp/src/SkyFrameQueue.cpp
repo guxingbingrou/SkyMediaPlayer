@@ -26,10 +26,16 @@ void SkyFrameQueue::Start() {
     m_running = true;
 }
 
-void SkyFrameQueue::Pause() {
+void SkyFrameQueue::Stop() {
+    std::unique_lock<std::mutex> lck(m_mutex);
     m_running = false;
     m_condition_read.notify_one();
     m_condition_write.notify_one();
+    for(auto& frame : m_frame_queue){
+        if(frame.frame){
+            av_frame_unref(frame.frame);
+        }
+    }
 }
 
 void SkyFrameQueue::Release() {

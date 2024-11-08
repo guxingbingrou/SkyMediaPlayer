@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "SkyPacketQueue.h"
 #include "MediaDecoderFactory.h"
@@ -29,6 +31,7 @@ public:
               const std::shared_ptr<SkyFrameQueue>& subtitleFrameQueue);
     bool Start();
     bool Pause();
+    bool SeekTo(int pos);
     bool StopAndRelease();
 
     int GetDuration();
@@ -51,6 +54,10 @@ private:
     std::thread m_thread;
     bool m_running = false;
 
+    bool m_seek_quest = false;
+    int m_seek_pos = 0;
+    std::mutex m_mutex;
+    std::condition_variable m_seek_condition;
 
 };
 

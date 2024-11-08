@@ -137,3 +137,10 @@ int SkyMediaPlayer::GetCurrentPosition() {
         return m_renderer->GetCurrentTime() - m_demuxer->GetStartTime();
     return 0;
 }
+
+bool SkyMediaPlayer::SeekTo(int pos) {
+    if(m_demuxer)
+        m_demuxer->SeekTo(pos);
+    INFO("seek to :%d", pos);
+    return true;
+}

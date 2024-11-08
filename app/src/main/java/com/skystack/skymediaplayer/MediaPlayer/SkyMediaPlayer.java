@@ -115,8 +115,8 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
-
+    public void seekTo(int msec) throws IllegalStateException {
+        nativeSeekTo(msec);
     }
 
     @Override
@@ -242,5 +242,6 @@ public class SkyMediaPlayer extends AbstractMediaPlayer{
 
     private native int nativeGetDuration();
     private native int nativeGetCurrentPosition();
+    private native void nativeSeekTo(int msec);
 
 }

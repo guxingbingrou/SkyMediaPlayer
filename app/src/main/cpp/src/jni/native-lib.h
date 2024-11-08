@@ -19,5 +19,6 @@ extern "C" jboolean nativeDestroyMediaPlayer(JNIEnv* env, jobject jobject1);
 
 extern "C" jint nativeGetDuration(JNIEnv* env, jobject jobject1);
 extern "C" jint nativeGetCurrentPosition(JNIEnv* env, jobject jobject1);
+extern "C" void nativeSeekTo(JNIEnv* env, jobject jobject1, jint msec);
 
 #endif //SKYMEDIAPLAYER_NATIVE_LIB_H

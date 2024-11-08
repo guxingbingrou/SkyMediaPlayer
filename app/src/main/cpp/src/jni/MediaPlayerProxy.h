@@ -24,6 +24,7 @@ public:
     bool Pause();
     bool Stop();
     bool Release();
+    bool SeekTo(int msec);
 
     int GetDuration();
     int GetCurrentPosition();
