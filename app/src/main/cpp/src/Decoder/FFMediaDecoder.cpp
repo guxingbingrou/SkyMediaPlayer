@@ -106,8 +106,10 @@ void FFMediaDecoder::Decode() {
 
         if(m_packet_queue->IsFlushPacket(packet)){
             avcodec_flush_buffers(m_codec_context);
+
+//            INFO("avcodec_flush_buffers: %s", avcodec_get_name(m_codec_context->codec_id));
         }else{
-            DecodeOnPacket(packet, avFrame);
+            DecodeOnPacket(packet, avFrame, serial);
         }
 
         av_packet_unref(packet);
@@ -126,7 +128,7 @@ void FFMediaDecoder::Decode() {
 
 }
 
-void FFMediaDecoder::DecodeOnPacket(AVPacket *packet, AVFrame* avFrame) {
+void FFMediaDecoder::DecodeOnPacket(AVPacket *packet, AVFrame* avFrame, int serial) {
     int ret = avcodec_send_packet(m_codec_context, packet);
     if(ret < 0){
         ERROR("failed to submitting a packet for decoding (%s)", av_err2str(ret));
@@ -164,6 +166,7 @@ void FFMediaDecoder::DecodeOnPacket(AVPacket *packet, AVFrame* avFrame) {
 
 //                INFO("GetWriteableFrame success");
             av_frame_ref(skyFrame->frame, avFrame);
+            skyFrame->serial = serial;
             m_frame_queue->FlushWriteableFrame();
         }else if(m_codec_context->codec->type == AVMEDIA_TYPE_AUDIO){
 //                INFO("GetWriteableFrame");
@@ -174,6 +177,7 @@ void FFMediaDecoder::DecodeOnPacket(AVPacket *packet, AVFrame* avFrame) {
             }
 //                INFO("GetWriteableFrame success");
             av_frame_ref(skyFrame->frame, avFrame);
+            skyFrame->serial = serial;
             m_frame_queue->FlushWriteableFrame();
         }
 

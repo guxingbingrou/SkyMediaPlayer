@@ -111,6 +111,13 @@ void RenderThread::Loop() {
                     continue;
                 }
 
+                if(skyFrame->serial != m_video_queue->GetSerial()){
+//                    INFO("skyFrame->serial != m_video_queue->GetSerial()");
+                    av_frame_unref(skyFrame->frame);
+                    m_video_queue->FlushReadableFrame();
+                    continue;
+                }
+
                 if(lastFrame.frame == nullptr){
                     lastFrame.frame = av_frame_alloc();
                     av_frame_ref(lastFrame.frame, skyFrame->frame);
@@ -119,16 +126,26 @@ void RenderThread::Loop() {
                     break;
                 }
 
+                if(lastFrame.serial != skyFrame->serial){
+//                    INFO("new serial");
+                    frame_timer = av_gettime_relative() / 1000000.0;
+                }
+
                 if(m_paused)
                     break;
 
                 AVFrame* avFrame = skyFrame->frame;
                 AVFrame* lastAvFrame = lastFrame.frame;
 
-                last_duration = avFrame->pts * av_q2d(m_video_timebase) - lastAvFrame->pts * av_q2d(m_video_timebase);
-                if(isnan(last_duration) || last_duration <=0 || last_duration > MAX_DURATION){
-                    last_duration = lastAvFrame->pts * av_q2d(m_video_timebase);
+                if(lastFrame.serial != skyFrame->serial){
+                    last_duration = 0.0;
+                }else{
+                    last_duration = avFrame->pts * av_q2d(m_video_timebase) - lastAvFrame->pts * av_q2d(m_video_timebase);
+                    if(isnan(last_duration) || last_duration <=0 || last_duration > MAX_DURATION){
+                        last_duration = lastAvFrame->pts * av_q2d(m_video_timebase);
+                    }
                 }
+
 
 //                INFO("avFrame->pts: %d, lastAvFrame->pts: %d, last_duration:%f, av_q2d(avFrame->time_base):%f",
 //                     avFrame->pts, lastAvFrame->pts, last_duration, av_q2d(m_video_timebase));

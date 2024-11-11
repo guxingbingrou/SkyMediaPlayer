@@ -22,8 +22,8 @@ enum FrameType{
 
 
 struct SkyFrame {
-//    FrameType frameType;
     AVFrame* frame = nullptr;
+    int serial = 0;
 };
 
 class SkyFrameQueue{
@@ -39,6 +39,8 @@ public:
 
     const SkyFrame* GetReadableFrame();
     void FlushReadableFrame();
+
+    inline int GetSerial(){return m_serial;}
 private:
     SkyFrame m_frame_queue[MAX_FRAMES];
     std::mutex m_mutex;
@@ -49,7 +51,7 @@ private:
     uint32_t m_live_size = MAX_FRAMES;  //可写的大小
     bool m_running = false;
 
-    int serial = 0;
+    int m_serial = 0;
 
 };
 

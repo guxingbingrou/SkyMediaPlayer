@@ -35,9 +35,12 @@ bool SkyPacketQueue::QueuePacket(AVPacket *packet) {
 
     m_queue.push(SkyPacket{m_serial, *packet});
 
-    av_packet_ref(&m_queue.back().packet, packet);
-    if (packet == &m_flush_pkt)
+    if (packet == &m_flush_pkt){
+//        INFO("packet == &m_flush_pkt: %x, %x, %x", packet->data, m_flush_pkt.data, m_queue.back().packet.data);
         ++m_serial;
+    }else{
+        av_packet_ref(&m_queue.back().packet, packet);
+    }
     m_queue.back().serial = m_serial;
 
     m_condition_pop.notify_one();
@@ -77,6 +80,7 @@ void SkyPacketQueue::Clear() {
 
 void SkyPacketQueue::FlushPacket() {
     QueuePacket(&m_flush_pkt);
+    INFO("FlushPacket");
 }
 
 bool SkyPacketQueue::IsFlushPacket(AVPacket *packet) {

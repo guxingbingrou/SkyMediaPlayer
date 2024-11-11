@@ -67,6 +67,7 @@ SkyFrame *SkyFrameQueue::GetWriteableFrame() {
 
 void SkyFrameQueue::FlushWriteableFrame() {
     std::unique_lock<std::mutex> lck(m_mutex);
+    m_serial = m_frame_queue[m_write_pos].serial;
     m_write_pos = (++m_write_pos) % MAX_FRAMES;
     --m_live_size;
     m_condition_read.notify_one();

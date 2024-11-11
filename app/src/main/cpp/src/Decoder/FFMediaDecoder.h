@@ -21,7 +21,7 @@ public:
 
 private:
     void Decode();
-    void DecodeOnPacket(AVPacket* packet, AVFrame* avFrame);
+    void DecodeOnPacket(AVPacket* packet, AVFrame* avFrame, int serial);
     SkyMediaPlayer* m_media_player = nullptr;
     AVCodecContext* m_codec_context = nullptr;
 
