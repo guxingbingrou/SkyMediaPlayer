@@ -1,16 +1,14 @@
 package com.skystack.skymediaplayer.View;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.Resources;
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 
@@ -42,10 +40,17 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
 
     private MediaController mMediaController = null;
     private IMediaPlayer mMediaPlayer = null;
+    private Button mButton;
+    private boolean m_fullscreen = false;
     private String mVideoPath = null;
 
     private int mSurfaceWidth = 0;
     private int mSurfaceHeight = 0;
+
+    private int mScreenWidth = 0;
+    private int mScreenHeight = 0;
+    private int mOrientation = 1;
+
     private IRenderView mRenderView = null;
     private IRenderView.ISurfaceHolder mSurfaceHolder = null;
 
@@ -58,6 +63,9 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     private boolean mCanPause;
     private boolean mCanSeekBack;
     private boolean mCanSeekForward;
+
+
+    private OrientationCallback mOrientationCallback;
 
     public SkyVideoView(@NonNull Context context) {
         super(context);
@@ -77,6 +85,10 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     public SkyVideoView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         initVideoView(context);
+    }
+
+    public void SetOrientationCallback(OrientationCallback orientationCallback){
+        mOrientationCallback = orientationCallback;
     }
 
     private void bindSurfaceHolder(IMediaPlayer mediaPlayer, IRenderView.ISurfaceHolder surfaceHolder){
@@ -140,6 +152,7 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
         mVideoWidth = 0;
         mVideoHeight = 0;
 
+
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -152,6 +165,49 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
         addView(renderView);
 
         mRenderView.addRenderCallback(mRenderCallback);
+
+        mButton = new Button(getContext());
+        FrameLayout.LayoutParams button_layout = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.RIGHT);
+
+        addView(mButton, button_layout);
+        mButton.setEnabled(true);
+        m_fullscreen = false;
+        mButton.setText("全屏");
+
+        mButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                m_fullscreen = !m_fullscreen;
+                if(m_fullscreen){
+                    mButton.setText("退出全屏");
+                    if(mVideoWidth < mVideoHeight){  //竖屏
+                        if(mOrientationCallback != null){
+                            mOrientationCallback.ChangeOrientation(false);
+                        }
+
+                    }else{
+                        if(mOrientationCallback != null){
+                            mOrientationCallback.ChangeOrientation(true);
+                        }
+
+                    }
+
+                }else{
+                    mButton.setText("全屏");
+                    if(mOrientationCallback != null){
+                        mOrientationCallback.ChangeOrientation(false);
+                    }
+//                    if(mRenderView != null) {
+//                        mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
+//                    }
+                }
+
+
+            }
+        });
 
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -250,9 +306,13 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
             Log.i(TAG, "onVideoSizeChanged: " + width + "x" + height);
             mVideoWidth = width;
             mVideoHeight = height;
-            if(mRenderView != null){
-                mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
-            }
+//            mVideoWidth = 1796;
+//            mVideoHeight = 1008;
+//            if(mRenderView != null){
+//                mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
+//            }
+
+            UpdateScreenSize();
         }
     };
 
@@ -274,6 +334,9 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
 
             mVideoWidth = mp.getVideoWidth();
             mVideoHeight = mp.getVideoHeight();
+//
+//            mVideoWidth = 1796;
+//            mVideoHeight = 1008;
 
             int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
             if(seekToPosition != 0)
@@ -281,8 +344,8 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
 
             if(mVideoWidth * mVideoHeight != 0){
                 if(mRenderView != null){
-                    mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
-
+//                    mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
+                    UpdateScreenSize();
                     if(mVideoWidth == mSurfaceWidth && mVideoHeight == mSurfaceHeight){
                         // We didn't actually change the size (it was already at the size
                         // we need), so we won't get a "surface changed" callback, so
@@ -498,6 +561,68 @@ public class SkyVideoView extends FrameLayout implements MediaController.MediaPl
     @Override
     public int getAudioSessionId() {
         return 0;
+    }
+
+
+    public void SetScreenSize(int width, int height) {
+        mScreenHeight = height;
+        mScreenWidth = width;
+        if(width > height){
+            mScreenWidth = height;
+            mScreenHeight = width;
+        }
+    }
+
+    private void UpdateScreenSize(){
+        Log.i(TAG, "fullscreen: " + m_fullscreen);
+        if(m_fullscreen){
+            if(mRenderView != null) {
+                int targetWidth = 0;
+                int targetHeight = 0;
+
+                int screenW = mScreenWidth;
+                int screenH = mScreenHeight;
+                if(mOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                    screenW = mScreenHeight;
+                    screenH = mScreenWidth;
+                }
+
+
+                if(screenW * mVideoHeight > mVideoWidth * screenH){
+                    targetHeight = screenH;
+                    targetWidth = mVideoWidth * screenH / mVideoHeight;
+                }else{
+                    targetWidth = screenW;
+                    targetHeight = screenW * mVideoHeight / mVideoWidth;
+                }
+
+//                Log.i(TAG, "targetWidth: " + targetWidth + "   targetHeight: " + targetHeight);
+//                Log.i(TAG, "mScreenWidth: " + screenW + "   mScreenHeight: " + screenH);
+
+//                if(landscape){
+//                    mRenderView.setVideoSize(targetHeight, targetWidth);
+//                }else{
+//                    mRenderView.setVideoSize(targetWidth, targetHeight);
+//                }
+
+                mRenderView.setVideoSize(targetWidth, targetHeight);
+            }
+        }else{
+            if(mRenderView != null) {
+                mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
+            }
+        }
+    }
+
+    public void OnOrientationChanged(int orientation){
+        Log.i(TAG, "OnOrientationChanged");
+        mOrientation = orientation;
+        UpdateScreenSize();
+
+    }
+
+    public interface OrientationCallback{
+        void ChangeOrientation(boolean landscape);
     }
 
 }
